@@ -22,7 +22,7 @@ const PublicDashboard = () => {
 
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-stone-900 via-stone-800 to-amber-900 text-white py-32 px-8">
-        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1200')] bg-cover bg-center opacity-20" />
+        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=1200')] bg-cover bg-center opacity-20" />
         <div className="relative max-w-4xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full mb-8">
             <Sparkles className="w-4 h-4 text-amber-400" />

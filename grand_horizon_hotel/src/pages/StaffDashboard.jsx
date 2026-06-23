@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BedDouble, UtensilsCrossed, Presentation, PartyPopper, DollarSign, ArrowRight, Building2, Users, BookOpen, Star } from 'lucide-react';
-import API from '../services/api';
+import API from '../services/api'; // <-- Shared Axios instance pointing to Render backend
 import StaffNavbar from '../components/StaffNavbar';
 import Footer from '../components/Footer';
 
@@ -10,6 +10,9 @@ const StaffDashboard = () => {
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const [analytics, setAnalytics] = useState(null);
 
+  // ==================== CONNECT TO BACKEND: Staff Analytics ====================
+  // GET https://final-capstone-2puq.onrender.com/api/staff/analytics/
+  // Returns: total_revenue, rooms { total, booked_today, revenue }, tables, conference, venues
   useEffect(() => {
     const token = localStorage.getItem('token');
     API.get('/staff/analytics/', {
@@ -19,6 +22,7 @@ const StaffDashboard = () => {
       .catch(err => console.log('Analytics error:', err));
   }, []);
 
+  // Default values if backend hasn't responded yet
   const data = analytics || {
     total_revenue: 0,
     rooms: { total: 0, booked_today: 0, revenue: 0 },
@@ -44,8 +48,10 @@ const StaffDashboard = () => {
       </div>
 
       <div className="max-w-7xl mx-auto px-8 py-12">
-        {/* Analytics Cards */}
+
+        {/* ==================== ANALYTICS CARDS (data from /api/staff/analytics/) ==================== */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+          {/* Total Revenue */}
           <div className="bg-white rounded-2xl border border-stone-200 p-6 hover:shadow-lg transition">
             <div className="flex items-center justify-between mb-4">
               <div className="bg-amber-100 w-12 h-12 rounded-xl flex items-center justify-center">
@@ -56,6 +62,7 @@ const StaffDashboard = () => {
             <p className="text-3xl font-bold text-stone-800">KES {data.total_revenue}</p>
           </div>
 
+          {/* Total Bookings Today */}
           <div className="bg-white rounded-2xl border border-stone-200 p-6 hover:shadow-lg transition">
             <div className="flex items-center justify-between mb-4">
               <div className="bg-amber-100 w-12 h-12 rounded-xl flex items-center justify-center">
@@ -68,6 +75,7 @@ const StaffDashboard = () => {
             </p>
           </div>
 
+          {/* Total Resources */}
           <div className="bg-white rounded-2xl border border-stone-200 p-6 hover:shadow-lg transition">
             <div className="flex items-center justify-between mb-4">
               <div className="bg-amber-100 w-12 h-12 rounded-xl flex items-center justify-center">
@@ -80,6 +88,7 @@ const StaffDashboard = () => {
             </p>
           </div>
 
+          {/* Active Services */}
           <div className="bg-white rounded-2xl border border-stone-200 p-6 hover:shadow-lg transition">
             <div className="flex items-center justify-between mb-4">
               <div className="bg-amber-100 w-12 h-12 rounded-xl flex items-center justify-center">
@@ -91,7 +100,7 @@ const StaffDashboard = () => {
           </div>
         </div>
 
-        {/* Resource Breakdown */}
+        {/* ==================== RESOURCE BREAKDOWN (from /api/staff/analytics/) ==================== */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-5 mb-12">
           {[
             { icon: BedDouble, label: 'Rooms', total: data.rooms?.total || 0, booked: data.rooms?.booked_today || 0, revenue: data.rooms?.revenue || 0 },
@@ -115,7 +124,7 @@ const StaffDashboard = () => {
           ))}
         </div>
 
-        {/* Quick Actions */}
+        {/* ==================== QUICK ACTIONS (Frontend navigation only) ==================== */}
         <h2 className="text-2xl font-bold text-stone-800 mb-6">Quick Actions</h2>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-12">
           {[
@@ -136,7 +145,7 @@ const StaffDashboard = () => {
           ))}
         </div>
 
-        {/* All Bookings */}
+        {/* ==================== NAVIGATE TO: All Bookings ==================== */}
         <button onClick={() => navigate('/staff/bookings')} className="w-full bg-amber-800 text-white rounded-2xl p-8 hover:bg-amber-700 transition flex items-center justify-between group">
           <div className="text-left">
             <h3 className="text-2xl font-bold mb-1">View All Bookings</h3>

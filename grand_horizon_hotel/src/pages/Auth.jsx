@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Hotel, User, Mail, Lock, Eye, EyeOff, LogIn, UserPlus } from 'lucide-react';
-import API from '../services/api';
+import API from '../services/api'; // <-- Shared Axios instance pointing to Render backend
 import Navbar from '../components/Navbar';
 
 const Auth = () => {
@@ -30,12 +30,21 @@ const Auth = () => {
 
     try {
       let res;
+
       if (isLogin) {
+        // ==================== CONNECT TO BACKEND: Login ====================
+        // POST https://final-capstone-2puq.onrender.com/api/auth/login/
+        // Sends: { username, password }
+        // Returns: { tokens: { access, refresh }, user: { id, username, email, role } }
         res = await API.post('/auth/login/', {
           username: form.username,
           password: form.password,
         });
       } else {
+        // ==================== CONNECT TO BACKEND: Register ====================
+        // POST https://final-capstone-2puq.onrender.com/api/auth/register/
+        // Sends: { username, email, password, role }
+        // Returns: { tokens: { access, refresh }, user: { id, username, email, role } }
         res = await API.post('/auth/register/', {
           username: form.username,
           email: form.email,
@@ -45,12 +54,16 @@ const Auth = () => {
       }
 
       const { tokens, user } = res.data;
+
+      // Store JWT token and user data for persistent auth
       localStorage.setItem('token', tokens.access);
       localStorage.setItem('user', JSON.stringify(user));
 
+      // Redirect based on role returned from backend
       if (user.role === 'guest') navigate('/guest/dashboard');
       else if (user.role === 'staff') navigate('/staff/dashboard');
       else if (user.role === 'admin') navigate('/admin/dashboard');
+
     } catch (err) {
       setError(err.response?.data?.error || 'Something went wrong. Please try again.');
     } finally {
@@ -65,7 +78,6 @@ const Auth = () => {
       <div className="flex items-center justify-center py-20 px-4">
         <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
           
-          {/* Header */}
           <div className="text-center mb-8">
             <div className="bg-amber-100 w-16 h-16 rounded-xl flex items-center justify-center mx-auto mb-4">
               <Hotel className="w-8 h-8 text-amber-700" />
@@ -78,14 +90,12 @@ const Auth = () => {
             </p>
           </div>
 
-          {/* Error */}
           {error && (
             <div className="bg-red-50 text-red-600 px-4 py-3 rounded-xl mb-4 text-sm text-center">
               {error}
             </div>
           )}
 
-          {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-stone-700 mb-1">Username</label>

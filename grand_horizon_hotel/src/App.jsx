@@ -14,7 +14,8 @@ import GuestBookings from "./pages/GuestBookings";
 import StaffBookings from "./pages/StaffBookings";
 import GuestTables from "./pages/GuestTables";
 import GuestBookTable from "./pages/GuestBookTable";
-
+import StaffConference from './pages/StaffConference';
+import StaffVenues from './pages/StaffVenues';
 import StaffTables from "./pages/StaffTables";
 function App() {
   return (
@@ -36,6 +37,8 @@ function App() {
         <Route path="/staff/bookings" element={<StaffBookings />} />
         <Route path="/guest/restaurant" element={<GuestTables />} />
         <Route path="/staff/tables/create" element={<StaffTables />} />
+        <Route path="/staff/conference/create" element={<StaffConference />} />
+        <Route path="/staff/venues/create" element={<StaffVenues />} />
         <Route
           path="/guest/tables/book/:tableId"
           element={<GuestBookTable />}

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, BedDouble, Calendar, Clock, XCircle, Trash2, CreditCard, CheckCircle } from 'lucide-react';
+import { ArrowLeft, BedDouble, Calendar, XCircle, Trash2, CheckCircle, AlertTriangle } from 'lucide-react';
 import API from '../services/api';
 import GuestNavbar from '../components/GuestNavbar';
 
@@ -8,15 +8,12 @@ const GuestBookings = () => {
   const navigate = useNavigate();
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [popup, setPopup] = useState({ show: false, type: '', message: '', onConfirm: null });
 
   const token = localStorage.getItem('token');
   const headers = { Authorization: `Bearer ${token}` };
 
-  // ==================== CONNECT TO BACKEND: Fetch My Bookings ====================
-  // GET /api/rooms/my-bookings/ — returns guest's room bookings
-  useEffect(() => {
-    fetchBookings();
-  }, []);
+  useEffect(() => { fetchBookings(); }, []);
 
   const fetchBookings = async () => {
     setLoading(true);
@@ -24,33 +21,46 @@ const GuestBookings = () => {
       const res = await API.get('/rooms/my-bookings/', { headers });
       setBookings(res.data.bookings || []);
     } catch (err) {
-      console.log('Error fetching bookings:', err);
+      console.log('Error:', err);
     }
     setLoading(false);
   };
 
-  // ==================== CONNECT TO BACKEND: Cancel Booking ====================
-  // POST /api/rooms/{id}/cancel/
-  const handleCancel = async (bookingId) => {
-    if (!window.confirm('Cancel this booking?')) return;
-    try {
-      await API.post(`/rooms/${bookingId}/cancel/`, {}, { headers });
-      fetchBookings();
-    } catch (err) {
-      alert(err.response?.data?.error || 'Failed to cancel');
-    }
+  // ==================== Styled Popup ====================
+  const showPopup = (type, message, onConfirm) => {
+    setPopup({ show: true, type, message, onConfirm });
   };
 
-  // ==================== CONNECT TO BACKEND: Delete Booking ====================
-  // DELETE /api/rooms/my-booking/{id}/delete/
-  const handleDelete = async (bookingId) => {
-    if (!window.confirm('Delete this booking permanently?')) return;
-    try {
-      await API.delete(`/rooms/my-booking/${bookingId}/delete/`, { headers });
-      fetchBookings();
-    } catch (err) {
-      alert(err.response?.data?.error || 'Failed to delete');
-    }
+  const closePopup = () => {
+    setPopup({ show: false, type: '', message: '', onConfirm: null });
+  };
+
+  const handleConfirm = () => {
+    if (popup.onConfirm) popup.onConfirm();
+    closePopup();
+  };
+
+  // ==================== Actions ====================
+  const handleCancel = (bookingId) => {
+    showPopup('warning', 'Are you sure you want to cancel this booking? The room will become available for others.', async () => {
+      try {
+        await API.post(`/rooms/${bookingId}/cancel/`, {}, { headers });
+        fetchBookings();
+      } catch (err) {
+        alert(err.response?.data?.error || 'Failed to cancel');
+      }
+    });
+  };
+
+  const handleDelete = (bookingId) => {
+    showPopup('danger', 'Permanently delete this booking? This action cannot be undone.', async () => {
+      try {
+        await API.delete(`/rooms/my-booking/${bookingId}/delete/`, { headers });
+        fetchBookings();
+      } catch (err) {
+        alert(err.response?.data?.error || 'Failed to delete');
+      }
+    });
   };
 
   const getStatusColor = (status) => {
@@ -71,6 +81,40 @@ const GuestBookings = () => {
   return (
     <div className="min-h-screen bg-stone-50 font-sans">
       <GuestNavbar />
+
+      {/* ==================== STYLED POPUP ==================== */}
+      {popup.show && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={closePopup} />
+          <div className="relative bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4">
+            <div className="text-center">
+              <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${
+                popup.type === 'danger' ? 'bg-red-100' : 'bg-amber-100'
+              }`}>
+                {popup.type === 'danger' ? (
+                  <Trash2 className="w-8 h-8 text-red-500" />
+                ) : (
+                  <AlertTriangle className="w-8 h-8 text-amber-600" />
+                )}
+              </div>
+              <h3 className="text-lg font-bold text-stone-800 mb-2">
+                {popup.type === 'danger' ? 'Delete Booking?' : 'Cancel Booking?'}
+              </h3>
+              <p className="text-stone-500 mb-6">{popup.message}</p>
+              <div className="flex gap-3">
+                <button onClick={closePopup} className="flex-1 px-4 py-2.5 border border-stone-200 rounded-xl text-stone-600 font-medium hover:bg-stone-50 transition">
+                  Keep Booking
+                </button>
+                <button onClick={handleConfirm} className={`flex-1 px-4 py-2.5 rounded-xl font-medium text-white transition ${
+                  popup.type === 'danger' ? 'bg-red-500 hover:bg-red-600' : 'bg-amber-700 hover:bg-amber-800'
+                }`}>
+                  {popup.type === 'danger' ? 'Delete' : 'Yes, Cancel'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Hero */}
       <section className="relative bg-stone-900 text-white py-12 px-8 overflow-hidden">
@@ -103,7 +147,6 @@ const GuestBookings = () => {
             {bookings.map(booking => (
               <div key={booking.id} className="bg-white rounded-2xl border border-stone-200 p-6 hover:shadow-md transition">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                  {/* Left: Room Info */}
                   <div className="flex items-center gap-4">
                     <div className="bg-amber-100 w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0">
                       <BedDouble className="w-6 h-6 text-amber-700" />
@@ -114,7 +157,6 @@ const GuestBookings = () => {
                     </div>
                   </div>
 
-                  {/* Center: Dates + Price */}
                   <div className="flex items-center gap-6">
                     <div className="text-center">
                       <p className="text-xs text-stone-400 mb-1">Check-in</p>
@@ -127,7 +169,6 @@ const GuestBookings = () => {
                     </div>
                   </div>
 
-                  {/* Right: Status + Price */}
                   <div className="flex items-center gap-4">
                     <div className="text-right">
                       <p className="font-bold text-stone-800">KES {parseFloat(booking.total_price).toLocaleString()}</p>
@@ -141,23 +182,14 @@ const GuestBookings = () => {
                       </div>
                     </div>
 
-                    {/* Actions */}
                     <div className="flex gap-2">
                       {(booking.status === 'pending' || booking.status === 'confirmed') && (
-                        <button
-                          onClick={() => handleCancel(booking.id)}
-                          className="p-2 text-amber-600 hover:bg-amber-50 rounded-lg transition"
-                          title="Cancel Booking"
-                        >
+                        <button onClick={() => handleCancel(booking.id)} className="p-2 text-amber-600 hover:bg-amber-50 rounded-lg transition" title="Cancel">
                           <XCircle className="w-5 h-5" />
                         </button>
                       )}
                       {(booking.status === 'checked_out' || booking.status === 'cancelled') && (
-                        <button
-                          onClick={() => handleDelete(booking.id)}
-                          className="p-2 text-red-400 hover:bg-red-50 rounded-lg transition"
-                          title="Delete Booking"
-                        >
+                        <button onClick={() => handleDelete(booking.id)} className="p-2 text-red-400 hover:bg-red-50 rounded-lg transition" title="Delete">
                           <Trash2 className="w-5 h-5" />
                         </button>
                       )}

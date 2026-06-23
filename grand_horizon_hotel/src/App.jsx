@@ -10,9 +10,12 @@ import AdminBookings from "./pages/AdminBookings";
 import StaffRooms from "./pages/StaffRooms";
 import GuestRooms from "./pages/GuestRooms";
 import GuestBookRoom from "./pages/GuestBookRoom";
-import GuestBookings from './pages/GuestBookings';
+import GuestBookings from "./pages/GuestBookings";
+import StaffBookings from "./pages/StaffBookings";
+import GuestTables from "./pages/GuestTables";
+import GuestBookTable from "./pages/GuestBookTable";
 
-
+import StaffTables from "./pages/StaffTables";
 function App() {
   return (
     <BrowserRouter>
@@ -30,6 +33,13 @@ function App() {
         <Route path="/guest/rooms" element={<GuestRooms />} />
         <Route path="/guest/rooms/book/:roomId" element={<GuestBookRoom />} />
         <Route path="/guest/bookings" element={<GuestBookings />} />
+        <Route path="/staff/bookings" element={<StaffBookings />} />
+        <Route path="/guest/restaurant" element={<GuestTables />} />
+        <Route path="/staff/tables/create" element={<StaffTables />} />
+        <Route
+          path="/guest/tables/book/:tableId"
+          element={<GuestBookTable />}
+        />
       </Routes>
     </BrowserRouter>
   );

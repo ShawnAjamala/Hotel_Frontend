@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Users, CheckCircle, Clock, XCircle } from 'lucide-react';
+import { ArrowLeft, Users, CheckCircle, Clock, XCircle, AlertTriangle } from 'lucide-react';
 import API from '../services/api';
 import GuestNavbar from '../components/GuestNavbar';
 
@@ -16,9 +16,16 @@ const GuestBookRoom = () => {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [paymentStatus, setPaymentStatus] = useState(null);
   const [step, setStep] = useState(1);
+  const [popup, setPopup] = useState({ show: false, message: '' });
 
   const token = localStorage.getItem('token');
   const headers = { Authorization: `Bearer ${token}` };
+
+  // Popup helper
+  const showPopup = (message) => {
+    setPopup({ show: true, message });
+    setTimeout(() => setPopup({ show: false, message: '' }), 3000);
+  };
 
   useEffect(() => {
     API.get(`/rooms/${roomId}/`, { headers })
@@ -33,18 +40,18 @@ const GuestBookRoom = () => {
   const today = new Date().toISOString().split('T')[0];
 
   const handleBook = async () => {
-    if (!checkIn || !checkOut) return alert('Select dates');
+    if (!checkIn || !checkOut) return showPopup('Please select check-in and check-out dates.');
     try {
       const res = await API.post('/rooms/book/', { room_id: roomId, check_in: checkIn, check_out: checkOut, guests }, { headers });
       setBooking(res.data.booking);
       setStep(2);
     } catch (err) {
-      alert(err.response?.data?.error || 'Booking failed');
+      showPopup(err.response?.data?.error || 'Booking failed. Please try again.');
     }
   };
 
   const handlePay = async () => {
-    if (!phoneNumber) return alert('Enter phone number');
+    if (!phoneNumber) return showPopup('Please enter your M-Pesa phone number.');
     const phone = phoneNumber.startsWith('254') ? phoneNumber : `254${phoneNumber.replace(/^0+/, '')}`;
     try {
       const res = await API.post('/mpesa/pay/', { phone_number: phone, amount: totalPrice, booking_id: `BK-${booking.id}` });
@@ -52,7 +59,7 @@ const GuestBookRoom = () => {
       setStep(3);
       pollPayment(res.data.checkout_request_id);
     } catch (err) {
-      alert(err.response?.data?.error || 'Payment failed');
+      showPopup(err.response?.data?.error || 'Payment failed. Please try again.');
     }
   };
 
@@ -83,6 +90,18 @@ const GuestBookRoom = () => {
     <div className="min-h-screen bg-stone-50 font-sans">
       <GuestNavbar />
 
+      {/* ==================== STYLED POPUP ==================== */}
+      {popup.show && (
+        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 animate-in">
+          <div className="bg-white rounded-2xl shadow-2xl border border-stone-100 px-6 py-4 flex items-center gap-4 max-w-md">
+            <div className="bg-amber-100 w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0">
+              <AlertTriangle className="w-5 h-5 text-amber-600" />
+            </div>
+            <p className="text-stone-700 font-medium text-sm">{popup.message}</p>
+          </div>
+        </div>
+      )}
+
       {/* Hero */}
       <section className="relative bg-stone-900 text-white py-10 px-8 overflow-hidden">
         <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1590490360182-c33d57733427?w=1200')] bg-cover bg-center opacity-25" />
@@ -97,7 +116,7 @@ const GuestBookRoom = () => {
 
       <div className="max-w-4xl mx-auto px-8 -mt-6 relative z-10 pb-16">
 
-        {/* ==================== STEP 1 ==================== */}
+        {/* STEP 1 */}
         {step === 1 && (
           <div className="bg-white rounded-2xl shadow-xl border border-stone-100 overflow-hidden">
             <div className="grid grid-cols-1 md:grid-cols-5">
@@ -157,7 +176,7 @@ const GuestBookRoom = () => {
           </div>
         )}
 
-        {/* ==================== STEP 2 ==================== */}
+        {/* STEP 2 */}
         {step === 2 && booking && (
           <div className="bg-white rounded-2xl shadow-xl border border-stone-100 p-6">
             <h2 className="text-lg font-bold text-stone-800 mb-4">Pay with M-Pesa</h2>
@@ -175,7 +194,7 @@ const GuestBookRoom = () => {
           </div>
         )}
 
-        {/* ==================== STEP 3 ==================== */}
+        {/* STEP 3 */}
         {step === 3 && (
           <div className="bg-white rounded-2xl shadow-xl border border-stone-100 p-6 text-center">
             {paymentStatus?.status === 'completed' ? (

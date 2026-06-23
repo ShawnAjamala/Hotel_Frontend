@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BedDouble, UtensilsCrossed, Presentation, PartyPopper, DollarSign, ArrowRight, Building2, Users, BookOpen, Star } from 'lucide-react';
-import API from '../services/api'; // <-- Shared Axios instance pointing to Render backend
+import API from '../services/api';
 import StaffNavbar from '../components/StaffNavbar';
 import Footer from '../components/Footer';
 
@@ -10,19 +10,13 @@ const StaffDashboard = () => {
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const [analytics, setAnalytics] = useState(null);
 
-  // ==================== CONNECT TO BACKEND: Staff Analytics ====================
-  // GET https://final-capstone-2puq.onrender.com/api/staff/analytics/
-  // Returns: total_revenue, rooms { total, booked_today, revenue }, tables, conference, venues
   useEffect(() => {
     const token = localStorage.getItem('token');
-    API.get('/staff/analytics/', {
-      headers: { Authorization: `Bearer ${token}` }
-    })
+    API.get('/staff/analytics/', { headers: { Authorization: `Bearer ${token}` } })
       .then(res => setAnalytics(res.data))
       .catch(err => console.log('Analytics error:', err));
   }, []);
 
-  // Default values if backend hasn't responded yet
   const data = analytics || {
     total_revenue: 0,
     rooms: { total: 0, booked_today: 0, revenue: 0 },
@@ -35,24 +29,24 @@ const StaffDashboard = () => {
     <div className="min-h-screen bg-stone-50 font-sans">
       <StaffNavbar />
 
-      {/* Brown Header Banner */}
-      <div className="bg-amber-800 text-white">
-        <div className="max-w-7xl mx-auto px-8 py-10">
+      {/* Staff Hero — matches StaffRooms & StaffTables */}
+      <section className="relative bg-gradient-to-br from-amber-900 to-amber-800 text-white py-14 px-8 overflow-hidden">
+        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=1200')] bg-cover bg-center opacity-10" />
+        <div className="absolute inset-0 bg-gradient-to-r from-amber-900/90 to-transparent" />
+        <div className="relative max-w-7xl mx-auto">
           <div className="flex items-center gap-2 mb-2">
             <Star className="w-5 h-5 text-amber-300" />
-            <span className="text-amber-200 text-sm font-medium">Staff Panel</span>
+            <span className="text-amber-200 text-sm font-medium tracking-wider uppercase">Staff Panel</span>
           </div>
           <h1 className="text-4xl font-bold">Welcome back, {user.username}</h1>
-          <p className="text-amber-100 mt-2 text-lg">Here's your hotel overview for today.</p>
+          <p className="text-amber-100/80 mt-2 text-lg">Here's your hotel overview for today.</p>
         </div>
-      </div>
+      </section>
 
-      <div className="max-w-7xl mx-auto px-8 py-12">
-
-        {/* ==================== ANALYTICS CARDS (data from /api/staff/analytics/) ==================== */}
+      <div className="max-w-7xl mx-auto px-8 -mt-6 relative z-10 pb-16">
+        {/* Analytics Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-          {/* Total Revenue */}
-          <div className="bg-white rounded-2xl border border-stone-200 p-6 hover:shadow-lg transition">
+          <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-6 hover:shadow-md transition">
             <div className="flex items-center justify-between mb-4">
               <div className="bg-amber-100 w-12 h-12 rounded-xl flex items-center justify-center">
                 <DollarSign className="w-6 h-6 text-amber-700" />
@@ -61,9 +55,7 @@ const StaffDashboard = () => {
             <p className="text-stone-500 text-sm mb-1">Total Revenue</p>
             <p className="text-3xl font-bold text-stone-800">KES {data.total_revenue}</p>
           </div>
-
-          {/* Total Bookings Today */}
-          <div className="bg-white rounded-2xl border border-stone-200 p-6 hover:shadow-lg transition">
+          <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-6 hover:shadow-md transition">
             <div className="flex items-center justify-between mb-4">
               <div className="bg-amber-100 w-12 h-12 rounded-xl flex items-center justify-center">
                 <BookOpen className="w-6 h-6 text-amber-700" />
@@ -74,9 +66,7 @@ const StaffDashboard = () => {
               {(data.rooms?.booked_today || 0) + (data.tables?.booked_today || 0) + (data.conference?.booked_today || 0) + (data.venues?.booked_this_month || 0)}
             </p>
           </div>
-
-          {/* Total Resources */}
-          <div className="bg-white rounded-2xl border border-stone-200 p-6 hover:shadow-lg transition">
+          <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-6 hover:shadow-md transition">
             <div className="flex items-center justify-between mb-4">
               <div className="bg-amber-100 w-12 h-12 rounded-xl flex items-center justify-center">
                 <Building2 className="w-6 h-6 text-amber-700" />
@@ -87,9 +77,7 @@ const StaffDashboard = () => {
               {(data.rooms?.total || 0) + (data.tables?.total || 0) + (data.conference?.total || 0) + (data.venues?.total || 0)}
             </p>
           </div>
-
-          {/* Active Services */}
-          <div className="bg-white rounded-2xl border border-stone-200 p-6 hover:shadow-lg transition">
+          <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-6 hover:shadow-md transition">
             <div className="flex items-center justify-between mb-4">
               <div className="bg-amber-100 w-12 h-12 rounded-xl flex items-center justify-center">
                 <Users className="w-6 h-6 text-amber-700" />
@@ -100,7 +88,7 @@ const StaffDashboard = () => {
           </div>
         </div>
 
-        {/* ==================== RESOURCE BREAKDOWN (from /api/staff/analytics/) ==================== */}
+        {/* Resource Breakdown */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-5 mb-12">
           {[
             { icon: BedDouble, label: 'Rooms', total: data.rooms?.total || 0, booked: data.rooms?.booked_today || 0, revenue: data.rooms?.revenue || 0 },
@@ -108,7 +96,7 @@ const StaffDashboard = () => {
             { icon: Presentation, label: 'Conference', total: data.conference?.total || 0, booked: data.conference?.booked_today || 0, revenue: data.conference?.revenue || 0 },
             { icon: PartyPopper, label: 'Venues', total: data.venues?.total || 0, booked: data.venues?.booked_this_month || 0, revenue: data.venues?.revenue || 0 },
           ].map((item, i) => (
-            <div key={i} className="bg-white rounded-2xl border border-stone-200 p-6 hover:shadow-lg transition">
+            <div key={i} className="bg-white rounded-2xl border border-stone-100 shadow-sm p-6 hover:shadow-md transition">
               <div className="flex items-center gap-3 mb-4">
                 <div className="bg-amber-100 w-10 h-10 rounded-lg flex items-center justify-center">
                   <item.icon className="w-5 h-5 text-amber-700" />
@@ -124,7 +112,7 @@ const StaffDashboard = () => {
           ))}
         </div>
 
-        {/* ==================== QUICK ACTIONS (Frontend navigation only) ==================== */}
+        {/* Quick Actions */}
         <h2 className="text-2xl font-bold text-stone-800 mb-6">Quick Actions</h2>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-12">
           {[
@@ -133,7 +121,7 @@ const StaffDashboard = () => {
             { icon: Presentation, title: 'Add Conference', link: '/staff/conference/create' },
             { icon: PartyPopper, title: 'Add Venue', link: '/staff/venues/create' },
           ].map((action, i) => (
-            <button key={i} onClick={() => navigate(action.link)} className="flex items-center gap-4 bg-white border border-stone-200 rounded-2xl p-5 hover:border-amber-400 hover:shadow-lg transition group">
+            <button key={i} onClick={() => navigate(action.link)} className="flex items-center gap-4 bg-white border border-stone-100 shadow-sm rounded-2xl p-5 hover:border-amber-400 hover:shadow-md transition group">
               <div className="bg-amber-100 w-12 h-12 rounded-xl flex items-center justify-center">
                 <action.icon className="w-6 h-6 text-amber-700" />
               </div>
@@ -145,8 +133,8 @@ const StaffDashboard = () => {
           ))}
         </div>
 
-        {/* ==================== NAVIGATE TO: All Bookings ==================== */}
-        <button onClick={() => navigate('/staff/bookings')} className="w-full bg-amber-800 text-white rounded-2xl p-8 hover:bg-amber-700 transition flex items-center justify-between group">
+        {/* All Bookings */}
+        <button onClick={() => navigate('/staff/bookings')} className="w-full bg-amber-800 text-white rounded-2xl p-8 hover:bg-amber-700 transition flex items-center justify-between group shadow-lg">
           <div className="text-left">
             <h3 className="text-2xl font-bold mb-1">View All Bookings</h3>
             <p className="text-amber-100">Manage room, table, conference, and venue reservations</p>

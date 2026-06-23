@@ -62,7 +62,7 @@ const AdminDashboard = () => {
               </div>
               <span className="text-xs text-emerald-600 font-medium">Active</span>
             </div>
-            <p className="text-stone-500 text-sm mb-1">Total Users</p>
+            <p className="text-stone-500 text-sm mb-1">Total Guests</p>
             <p className="text-3xl font-bold text-stone-800">{users.guests}</p>
           </div>
 

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Calendar, BedDouble, UtensilsCrossed, Presentation, PartyPopper } from 'lucide-react';
+import { ArrowLeft, BedDouble, UtensilsCrossed, Presentation, PartyPopper, Trash2 } from 'lucide-react';
 import API from '../services/api';
 import AdminNavbar from '../components/AdminNavbar';
 
@@ -9,10 +9,10 @@ const AdminBookings = () => {
   const [bookings, setBookings] = useState([]);
   const [filter, setFilter] = useState('all');
 
-  useEffect(() => {
+  const fetchBookings = () => {
     const token = localStorage.getItem('token');
     const headers = { Authorization: `Bearer ${token}` };
-    // Fetch all booking types
+    // ==================== CONNECT TO BACKEND: All 4 booking types ====================
     Promise.all([
       API.get('/rooms/all-bookings/', { headers }),
       API.get('/tables/all-bookings/', { headers }),
@@ -27,11 +27,30 @@ const AdminBookings = () => {
       ];
       setBookings(all);
     });
-  }, []);
+  };
+
+  useEffect(() => { fetchBookings(); }, []);
+
+  // ==================== CONNECT TO BACKEND: Delete Booking ====================
+  const handleDelete = async (booking) => {
+    if (!window.confirm(`Delete this ${booking.type} booking permanently?`)) return;
+    const token = localStorage.getItem('token');
+    const headers = { Authorization: `Bearer ${token}` };
+    const endpoints = {
+      room: `/rooms/booking/${booking.id}/delete/`,
+      table: `/tables/booking/${booking.id}/delete/`,
+      conference: `/conference/booking/${booking.id}/delete/`,
+      venue: `/venues/booking/${booking.id}/delete/`,
+    };
+    await API.delete(endpoints[booking.type], { headers });
+    fetchBookings(); // Refresh list
+  };
 
   const typeIcons = { room: BedDouble, table: UtensilsCrossed, conference: Presentation, venue: PartyPopper };
 
   const filtered = filter === 'all' ? bookings : bookings.filter(b => b.type === filter);
+
+  const canDelete = (status) => ['checked_out', 'completed', 'cancelled'].includes(status);
 
   return (
     <div className="min-h-screen bg-stone-50 font-sans">
@@ -60,13 +79,23 @@ const AdminBookings = () => {
                     <Icon className="w-5 h-5 text-amber-700" />
                   </div>
                   <div>
-                    <p className="font-semibold text-stone-800">{b.room || b.table || b.venue || b.guest}</p>
+                    <p className="font-semibold text-stone-800 capitalize">{b.type}: {b.room || b.table || b.venue || b.guest}</p>
                     <p className="text-stone-500 text-sm">{b.date || b.check_in} • {b.guest || b.guests} guest(s)</p>
                   </div>
                 </div>
-                <span className={`px-3 py-1 rounded-full text-xs font-medium ${b.status === 'confirmed' ? 'bg-emerald-100 text-emerald-700' : b.status === 'pending' ? 'bg-amber-100 text-amber-700' : 'bg-stone-100 text-stone-600'}`}>
-                  {b.status}
-                </span>
+                <div className="flex items-center gap-4">
+                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                    b.status === 'confirmed' || b.status === 'checked_in' ? 'bg-emerald-100 text-emerald-700' : 
+                    b.status === 'pending' ? 'bg-amber-100 text-amber-700' : 'bg-stone-100 text-stone-600'
+                  }`}>
+                    {b.status}
+                  </span>
+                  {canDelete(b.status) && (
+                    <button onClick={() => handleDelete(b)} className="text-red-400 hover:text-red-600 transition">
+                      <Trash2 className="w-5 h-5" />
+                    </button>
+                  )}
+                </div>
               </div>
             );
           })}

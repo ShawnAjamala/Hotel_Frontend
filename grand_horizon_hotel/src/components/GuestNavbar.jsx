@@ -1,8 +1,10 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Hotel, BedDouble, UtensilsCrossed, Presentation, PartyPopper, Calendar, User, LogOut } from 'lucide-react';
 
 const GuestNavbar = () => {
   const navigate = useNavigate();
+  const [showLogout, setShowLogout] = useState(false);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -11,44 +13,47 @@ const GuestNavbar = () => {
   };
 
   return (
-    <nav className="flex items-center justify-between px-8 py-4 bg-white shadow-sm sticky top-0 z-50">
-      {/* Logo */}
-      <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate('/guest/dashboard')}>
-        <div className="bg-amber-700 p-2 rounded-xl">
-          <Hotel className="w-6 h-6 text-white" />
+    <>
+      <nav className="flex items-center justify-between px-8 py-4 bg-white/80 backdrop-blur-md sticky top-0 z-40 border-b border-stone-100">
+        <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate('/guest/dashboard')}>
+          <div className="bg-amber-700 p-2 rounded-xl"><Hotel className="w-6 h-6 text-white" /></div>
+          <h1 className="text-xl font-bold text-stone-800">Grand Horizon</h1>
         </div>
-        <h1 className="text-xl font-bold text-stone-800">Grand Horizon</h1>
-      </div>
+        <div className="flex items-center gap-6">
+          <button onClick={() => navigate('/guest/dashboard')} className="flex items-center gap-2 text-stone-500 hover:text-amber-700 text-sm"><Hotel className="w-4 h-4" /> Home</button>
+          <button onClick={() => navigate('/guest/rooms')} className="flex items-center gap-2 text-stone-500 hover:text-amber-700 text-sm"><BedDouble className="w-4 h-4" /> Rooms</button>
+          <button onClick={() => navigate('/guest/restaurant')} className="flex items-center gap-2 text-stone-500 hover:text-amber-700 text-sm"><UtensilsCrossed className="w-4 h-4" /> Dining</button>
+          <button onClick={() => navigate('/guest/conference')} className="flex items-center gap-2 text-stone-500 hover:text-amber-700 text-sm"><Presentation className="w-4 h-4" /> Conference</button>
+          <button onClick={() => navigate('/guest/events')} className="flex items-center gap-2 text-stone-500 hover:text-amber-700 text-sm"><PartyPopper className="w-4 h-4" /> Events</button>
+          <button onClick={() => navigate('/guest/bookings')} className="flex items-center gap-2 text-stone-500 hover:text-amber-700 text-sm"><Calendar className="w-4 h-4" /> My Bookings</button>
+        </div>
+        <div className="flex items-center gap-4">
+          <button onClick={() => navigate('/guest/profile')} className="bg-amber-100 w-10 h-10 rounded-full flex items-center justify-center hover:bg-amber-200 transition">
+            <User className="w-5 h-5 text-amber-700" />
+          </button>
+          <button onClick={() => setShowLogout(true)} className="text-stone-400 hover:text-red-500 transition">
+            <LogOut className="w-5 h-5" />
+          </button>
+        </div>
+      </nav>
 
-      {/* Navigation Links */}
-      <div className="flex items-center gap-8">
-        <button onClick={() => navigate('/guest/rooms')} className="flex items-center gap-2 text-stone-600 hover:text-amber-700 transition">
-          <BedDouble className="w-4 h-4" /> Rooms
-        </button>
-        <button onClick={() => navigate('/guest/restaurant')} className="flex items-center gap-2 text-stone-600 hover:text-amber-700 transition">
-          <UtensilsCrossed className="w-4 h-4" /> Dining
-        </button>
-        <button onClick={() => navigate('/guest/conference')} className="flex items-center gap-2 text-stone-600 hover:text-amber-700 transition">
-          <Presentation className="w-4 h-4" /> Conference
-        </button>
-        <button onClick={() => navigate('/guest/events')} className="flex items-center gap-2 text-stone-600 hover:text-amber-700 transition">
-          <PartyPopper className="w-4 h-4" /> Events
-        </button>
-        <button onClick={() => navigate('/guest/bookings')} className="flex items-center gap-2 text-stone-600 hover:text-amber-700 transition">
-          <Calendar className="w-4 h-4" /> My Bookings
-        </button>
-      </div>
-
-      {/* Profile + Logout */}
-      <div className="flex items-center gap-4">
-        <button onClick={() => navigate('/guest/profile')} className="bg-amber-100 w-10 h-10 rounded-full flex items-center justify-center hover:bg-amber-200 transition">
-          <User className="w-5 h-5 text-amber-700" />
-        </button>
-        <button onClick={handleLogout} className="text-stone-400 hover:text-red-500 transition">
-          <LogOut className="w-5 h-5" />
-        </button>
-      </div>
-    </nav>
+      {showLogout && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowLogout(false)} />
+          <div className="relative bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full mx-4 text-center">
+            <div className="bg-amber-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+              <LogOut className="w-8 h-8 text-amber-600" />
+            </div>
+            <h3 className="text-lg font-bold text-stone-800 mb-2">Sign Out</h3>
+            <p className="text-stone-500 mb-6">Are you sure you want to sign out?</p>
+            <div className="flex gap-3">
+              <button onClick={() => setShowLogout(false)} className="flex-1 py-3 border border-stone-200 rounded-xl text-stone-600 font-medium hover:bg-stone-50">Stay</button>
+              <button onClick={handleLogout} className="flex-1 py-3 bg-amber-700 text-white rounded-xl font-medium hover:bg-amber-800">Sign Out</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 

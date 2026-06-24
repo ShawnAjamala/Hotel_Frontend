@@ -8,56 +8,62 @@ import AdminUsers from "./pages/AdminUsers";
 import AdminApprovals from "./pages/AdminApprovals";
 import AdminBookings from "./pages/AdminBookings";
 import StaffRooms from "./pages/StaffRooms";
-import GuestRooms from "./pages/GuestRooms";
-import GuestBookRoom from "./pages/GuestBookRoom";
-import GuestBookings from "./pages/GuestBookings";
-import StaffBookings from "./pages/StaffBookings";
-import GuestTables from "./pages/GuestTables";
-import GuestBookTable from "./pages/GuestBookTable";
+import StaffTables from "./pages/StaffTables";
 import StaffConference from "./pages/StaffConference";
 import StaffVenues from "./pages/StaffVenues";
-import StaffTables from "./pages/StaffTables";
-import GuestConference from './pages/GuestConference';
-import GuestBookConference from './pages/GuestBookConference';
-import GuestVenues from './pages/GuestVenues';
-import GuestBookVenue from './pages/GuestBookVenue';
+import StaffBookings from "./pages/StaffBookings";
+import GuestRooms from "./pages/GuestRooms";
+import GuestBookRoom from "./pages/GuestBookRoom";
+import GuestTables from "./pages/GuestTables";
+import GuestBookTable from "./pages/GuestBookTable";
+import GuestConference from "./pages/GuestConference";
+import GuestBookConference from "./pages/GuestBookConference";
+import GuestVenues from "./pages/GuestVenues";
+import GuestBookVenue from "./pages/GuestBookVenue";
+import GuestBookings from "./pages/GuestBookings";
+import Profile from "./pages/Profile";
+
 function App() {
   return (
     <BrowserRouter>
       <Routes>
+        {/* Public */}
         <Route path="/" element={<PublicDashboard />} />
         <Route path="/login" element={<Auth />} />
         <Route path="/register" element={<Auth />} />
+
+        {/* Dashboards */}
         <Route path="/guest/dashboard" element={<GuestDashboard />} />
         <Route path="/staff/dashboard" element={<StaffDashboard />} />
         <Route path="/admin/dashboard" element={<AdminDashboard />} />
+
+        {/* Admin */}
         <Route path="/admin/users" element={<AdminUsers />} />
         <Route path="/admin/staff/pending" element={<AdminApprovals />} />
         <Route path="/admin/bookings" element={<AdminBookings />} />
+
+        {/* Staff Management */}
         <Route path="/staff/rooms/create" element={<StaffRooms />} />
-        <Route path="/guest/rooms" element={<GuestRooms />} />
-        <Route path="/guest/rooms/book/:roomId" element={<GuestBookRoom />} />
-        <Route path="/guest/bookings" element={<GuestBookings />} />
-        <Route path="/staff/bookings" element={<StaffBookings />} />
-        <Route path="/guest/restaurant" element={<GuestTables />} />
         <Route path="/staff/tables/create" element={<StaffTables />} />
         <Route path="/staff/conference/create" element={<StaffConference />} />
         <Route path="/staff/venues/create" element={<StaffVenues />} />
+        <Route path="/staff/bookings" element={<StaffBookings />} />
 
+        {/* Guest Browse & Book */}
+        <Route path="/guest/rooms" element={<GuestRooms />} />
+        <Route path="/guest/rooms/book/:roomId" element={<GuestBookRoom />} />
+        <Route path="/guest/restaurant" element={<GuestTables />} />
+        <Route path="/guest/tables/book/:tableId" element={<GuestBookTable />} />
         <Route path="/guest/conference" element={<GuestConference />} />
-        <Route
-          path="/guest/conference/book/:roomId"
-          element={<GuestBookConference />}
-        />
+        <Route path="/guest/conference/book/:roomId" element={<GuestBookConference />} />
         <Route path="/guest/events" element={<GuestVenues />} />
-        <Route
-          path="/guest/venues/book/:venueId"
-          element={<GuestBookVenue />}
-        />
-        <Route
-          path="/guest/tables/book/:tableId"
-          element={<GuestBookTable />}
-        />
+        <Route path="/guest/venues/book/:venueId" element={<GuestBookVenue />} />
+
+        {/* Guest Bookings & Profile */}
+        <Route path="/guest/bookings" element={<GuestBookings />} />
+        <Route path="/guest/profile" element={<Profile />} />
+        <Route path="/staff/profile" element={<Profile />} />
+        <Route path="/admin/profile" element={<Profile />} />
       </Routes>
     </BrowserRouter>
   );

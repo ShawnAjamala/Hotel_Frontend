@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { BedDouble, Users, ArrowLeft, Filter } from 'lucide-react';
+import { BedDouble, Users, Filter, Search } from 'lucide-react';
 import API from '../services/api';
 import GuestNavbar from '../components/GuestNavbar';
 
@@ -10,157 +10,114 @@ const GuestRooms = () => {
   const [filteredRooms, setFilteredRooms] = useState([]);
   const [loading, setLoading] = useState(false);
   const [roomType, setRoomType] = useState('all');
+  const [checkIn, setCheckIn] = useState('');
+  const [checkOut, setCheckOut] = useState('');
 
   const token = localStorage.getItem('token');
   const headers = { Authorization: `Bearer ${token}` };
+  const today = new Date().toISOString().split('T')[0];
 
-  useEffect(() => { fetchAvailableRooms(); }, []);
-
-  // ==================== CONNECT TO BACKEND: Get Available Rooms Only ====================
-  // GET /api/rooms/available/ — excludes rooms with confirmed/checked_in bookings
-  // Uses wide date range to show all available rooms
-  const fetchAvailableRooms = async () => {
+  const fetchRooms = useCallback(async (ci, co) => {
     setLoading(true);
+    const inDate = ci || '2020-01-01';
+    const outDate = co || '2099-12-31';
     try {
-      const res = await API.get('/rooms/available/?check_in=2020-01-01&check_out=2099-12-31', { headers });
-      const data = res.data.available_rooms || [];
-      setRooms(data);
-      setFilteredRooms(data);
-    } catch (err) {
-      // Fallback to all rooms if available endpoint fails
+      const [allRes, availableRes] = await Promise.all([
+        API.get('/rooms/', { headers }),
+        API.get(`/rooms/available/?check_in=${inDate}&check_out=${outDate}`, { headers }),
+      ]);
+      const allRooms = Array.isArray(allRes.data) ? allRes.data : (allRes.data.rooms || []);
+      const availableRooms = availableRes.data.available_rooms || [];
+      const availableIds = new Set(availableRooms.map(r => r.id));
+      const marked = allRooms.map(r => ({ ...r, available: availableIds.has(r.id) }));
+      setRooms(marked);
+      setFilteredRooms(marked);
+    } catch {
       try {
-        const res = await API.get('/rooms/', { headers });
-        const data = Array.isArray(res.data) ? res.data : (res.data.rooms || []);
-        setRooms(data);
-        setFilteredRooms(data);
-      } catch (e) {
-        console.log('Error fetching rooms:', e);
-      }
+        const fallback = await API.get('/rooms/', { headers });
+        const data = Array.isArray(fallback.data) ? fallback.data : (fallback.data.rooms || []);
+        setRooms(data.map(r => ({ ...r, available: true })));
+        setFilteredRooms(data.map(r => ({ ...r, available: true })));
+      } catch (e) {}
     }
     setLoading(false);
-  };
+  }, []);
 
-  // ==================== Filter by Room Type ====================
+  useEffect(() => { fetchRooms(); }, [fetchRooms]);
   useEffect(() => {
-    if (roomType === 'all') setFilteredRooms(rooms);
-    else setFilteredRooms(rooms.filter(r => r.room_type === roomType));
+    setFilteredRooms(roomType === 'all' ? rooms : rooms.filter(r => r.room_type === roomType));
   }, [roomType, rooms]);
 
-  return (
-    <div className="min-h-screen bg-stone-50 font-sans">
-      <GuestNavbar />
+  const handleSearch = () => { fetchRooms(checkIn, checkOut); };
 
-      {/* Classy Hero Header */}
-      <section className="relative bg-stone-900 text-white py-20 px-8 overflow-hidden">
+  return (
+    <div className="min-h-screen bg-stone-50">
+      <GuestNavbar />
+      <section className="relative bg-stone-900 text-white py-16 px-8 overflow-hidden">
         <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1590490360182-c33d57733427?w=1200')] bg-cover bg-center opacity-30" />
         <div className="absolute inset-0 bg-gradient-to-r from-stone-900/90 to-transparent" />
         <div className="relative max-w-7xl mx-auto">
-          <button onClick={() => navigate('/guest/dashboard')} className="flex items-center gap-2 text-amber-300 hover:text-amber-200 transition mb-6">
-            <ArrowLeft className="w-4 h-4" /> Back to Dashboard
-          </button>
-          <h1 className="text-5xl font-serif font-bold mb-3 tracking-tight">Our Rooms & Suites</h1>
-          <p className="text-stone-300 text-lg max-w-lg">Discover the perfect space for your stay. Every room tells a story of comfort and elegance.</p>
+          <h1 className="text-5xl font-serif font-bold mb-3">Our Rooms & Suites</h1>
+          <p className="text-stone-300 text-lg">Discover the perfect space for your stay.</p>
         </div>
       </section>
 
       <div className="max-w-7xl mx-auto px-8 py-10">
-        {/* Filter Bar */}
-        <div className="bg-white rounded-2xl border border-stone-200 p-5 -mt-16 relative z-10 shadow-lg mb-10">
-          <div className="flex items-center gap-4">
-            <Filter className="w-5 h-5 text-stone-400" />
-            <span className="text-sm font-medium text-stone-700">Filter by type:</span>
-            <div className="flex gap-2">
-              {[
-                { value: 'all', label: 'All Rooms' },
-                { value: 'single', label: 'Single' },
-                { value: 'double', label: 'Double' },
-                { value: 'suite', label: 'Suite' },
-                { value: 'family', label: 'Family' },
-              ].map(opt => (
-                <button
-                  key={opt.value}
-                  onClick={() => setRoomType(opt.value)}
-                  className={`px-5 py-2.5 rounded-full text-sm font-medium transition ${
-                    roomType === opt.value 
-                      ? 'bg-amber-700 text-white shadow-md' 
-                      : 'bg-stone-50 text-stone-600 hover:bg-amber-50 hover:text-amber-700'
-                  }`}
-                >
-                  {opt.label}
-                </button>
+        <div className="bg-white rounded-2xl border p-5 -mt-16 relative z-10 shadow-lg mb-10">
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="flex items-center gap-3">
+              <div>
+                <label className="block text-xs text-stone-500 mb-1">Check-in</label>
+                <input type="date" value={checkIn} min={today} onChange={e => setCheckIn(e.target.value)} className="px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-amber-500" />
+              </div>
+              <div>
+                <label className="block text-xs text-stone-500 mb-1">Check-out</label>
+                <input type="date" value={checkOut} min={checkIn || today} onChange={e => setCheckOut(e.target.value)} className="px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-amber-500" />
+              </div>
+              <button onClick={handleSearch} className="bg-amber-700 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-amber-800 mt-5 flex items-center gap-1">
+                <Search className="w-4 h-4" /> Search
+              </button>
+            </div>
+            <div className="flex items-center gap-2 ml-4 pl-4 border-l">
+              <Filter className="w-5 h-5 text-stone-400" />
+              {['all','single','double','suite','family'].map(t => (
+                <button key={t} onClick={() => setRoomType(t)} className={`px-4 py-2 rounded-full text-sm font-medium transition ${roomType===t?'bg-amber-700 text-white shadow-md':'bg-stone-50 text-stone-600 hover:bg-amber-50'}`}>{t==='all'?'All':t.charAt(0).toUpperCase()+t.slice(1)}</button>
               ))}
             </div>
           </div>
         </div>
 
-        {/* Rooms Grid */}
-        {loading ? (
-          <div className="text-center py-16">
-            <div className="animate-spin w-10 h-10 border-4 border-amber-700 border-t-transparent rounded-full mx-auto mb-4" />
-            <p className="text-stone-500">Loading available rooms...</p>
-          </div>
-        ) : filteredRooms.length === 0 ? (
-          <div className="text-center py-16 bg-white rounded-2xl border border-stone-200">
-            <BedDouble className="w-20 h-20 text-stone-200 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-stone-600 mb-2">No Rooms Available</h3>
-            <p className="text-stone-400">{roomType !== 'all' ? `No ${roomType} rooms available right now.` : 'All rooms are currently booked. Please check back later.'}</p>
-          </div>
+        {loading ? <div className="text-center py-16"><div className="animate-spin w-10 h-10 border-4 border-amber-700 border-t-transparent rounded-full mx-auto" /></div> : filteredRooms.length===0 ? (
+          <div className="text-center py-16 bg-white rounded-2xl border"><BedDouble className="w-16 h-16 text-stone-200 mx-auto mb-4" /><p className="text-stone-500">No rooms available for these dates.</p></div>
         ) : (
-          <>
-            <p className="text-stone-500 mb-6">{filteredRooms.length} room{filteredRooms.length !== 1 ? 's' : ''} available{roomType !== 'all' && ` in ${roomType}`}</p>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredRooms.map(room => (
-                <div key={room.id} className="group bg-white rounded-2xl border border-stone-200 overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-                  {/* Image */}
-                  <div className="h-56 bg-stone-100 overflow-hidden relative">
-                    {room.image ? (
-                      <img src={room.image} alt={`Room ${room.room_number}`} className="w-full h-full object-cover group-hover:scale-105 transition duration-700" />
-                    ) : (
-                      <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-stone-100 to-stone-200">
-                        <BedDouble className="w-16 h-16 text-stone-300" />
-                        <span className="text-stone-400 text-sm mt-2">No image</span>
-                      </div>
-                    )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-                    <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between">
-                      <span className="text-white font-bold text-lg">Room {room.room_number}</span>
-                      <span className="bg-amber-500 text-white px-3 py-1 rounded-full text-xs font-medium capitalize">{room.room_type}</span>
-                    </div>
-                  </div>
-
-                  {/* Details */}
-                  <div className="p-5">
-                    <p className="text-stone-500 text-sm mb-4 line-clamp-2 leading-relaxed">{room.description || 'A comfortable stay awaits you at Grand Horizon Hotel.'}</p>
-                    
-                    <div className="flex items-center gap-4 mb-4 text-sm">
-                      <div className="flex items-center gap-1 text-stone-500"><Users className="w-4 h-4" /> {room.max_guests} guests</div>
-                    </div>
-
-                    {room.amenities && (
-                      <div className="flex flex-wrap gap-1.5 mb-4">
-                        {room.amenities.split(',').slice(0, 4).map((a, i) => (
-                          <span key={i} className="bg-stone-100 text-stone-500 text-xs px-2.5 py-1 rounded-full">{a.trim()}</span>
-                        ))}
-                      </div>
-                    )}
-
-                    <div className="flex items-center justify-between pt-4 border-t border-stone-100">
-                      <div>
-                        <span className="text-xl font-bold text-stone-800">KES {parseFloat(room.price_per_night).toLocaleString()}</span>
-                        <span className="text-stone-400 text-sm"> /night</span>
-                      </div>
-                      <button 
-                        onClick={() => navigate(`/guest/rooms/book/${room.id}`)}
-                        className="bg-amber-700 text-white px-6 py-2.5 rounded-full text-sm font-medium hover:bg-amber-800 transition shadow-md hover:shadow-lg"
-                      >
-                        Book Now
-                      </button>
-                    </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {filteredRooms.map(room => (
+              <div key={room.id} className="group bg-white rounded-2xl border overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                <div className="h-56 bg-stone-100 relative overflow-hidden">
+                  {room.image ? <img src={room.image} loading="lazy" alt={`Room ${room.room_number}`} className="w-full h-full object-cover group-hover:scale-105 transition duration-700" /> : <div className="w-full h-full flex items-center justify-center"><BedDouble className="w-16 h-16 text-stone-300" /></div>}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+                  <div className="absolute bottom-4 left-4 right-4 flex justify-between">
+                    <span className="text-white font-bold text-lg">Room {room.room_number}</span>
+                    <span className={`px-3 py-1 rounded-full text-xs capitalize font-medium ${room.available ? 'bg-amber-500 text-white' : 'bg-red-500 text-white'}`}>
+                      {room.available ? room.room_type : 'Booked'}
+                    </span>
                   </div>
                 </div>
-              ))}
-            </div>
-          </>
+                <div className="p-5">
+                  <p className="text-stone-500 text-sm mb-3 line-clamp-2">{room.description || 'A comfortable stay awaits.'}</p>
+                  <div className="flex items-center gap-1 text-stone-400 text-sm mb-3"><Users className="w-4 h-4" /> {room.max_guests} guests</div>
+                  <div className="flex justify-between items-center pt-4 border-t">
+                    <span className="text-xl font-bold">KES {parseFloat(room.price_per_night).toLocaleString()}<span className="text-stone-400 text-sm font-normal">/night</span></span>
+                    {room.available ? (
+                      <button onClick={() => navigate(`/guest/rooms/book/${room.id}?check_in=${checkIn}&check_out=${checkOut}`)} className="bg-amber-700 text-white px-6 py-2.5 rounded-full text-sm font-medium hover:bg-amber-800 transition shadow-md">Book Now</button>
+                    ) : (
+                      <button disabled className="bg-stone-200 text-stone-400 px-6 py-2.5 rounded-full text-sm font-medium cursor-not-allowed">Unavailable</button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         )}
       </div>
     </div>

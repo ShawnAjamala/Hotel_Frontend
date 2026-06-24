@@ -14,9 +14,13 @@ import GuestBookings from "./pages/GuestBookings";
 import StaffBookings from "./pages/StaffBookings";
 import GuestTables from "./pages/GuestTables";
 import GuestBookTable from "./pages/GuestBookTable";
-import StaffConference from './pages/StaffConference';
-import StaffVenues from './pages/StaffVenues';
+import StaffConference from "./pages/StaffConference";
+import StaffVenues from "./pages/StaffVenues";
 import StaffTables from "./pages/StaffTables";
+import GuestConference from './pages/GuestConference';
+import GuestBookConference from './pages/GuestBookConference';
+import GuestVenues from './pages/GuestVenues';
+import GuestBookVenue from './pages/GuestBookVenue';
 function App() {
   return (
     <BrowserRouter>
@@ -39,6 +43,17 @@ function App() {
         <Route path="/staff/tables/create" element={<StaffTables />} />
         <Route path="/staff/conference/create" element={<StaffConference />} />
         <Route path="/staff/venues/create" element={<StaffVenues />} />
+
+        <Route path="/guest/conference" element={<GuestConference />} />
+        <Route
+          path="/guest/conference/book/:roomId"
+          element={<GuestBookConference />}
+        />
+        <Route path="/guest/events" element={<GuestVenues />} />
+        <Route
+          path="/guest/venues/book/:venueId"
+          element={<GuestBookVenue />}
+        />
         <Route
           path="/guest/tables/book/:tableId"
           element={<GuestBookTable />}

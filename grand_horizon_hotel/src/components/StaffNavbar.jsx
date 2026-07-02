@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Hotel, PlusCircle, Calendar, User, LogOut, BedDouble, UtensilsCrossed, Presentation, PartyPopper } from 'lucide-react';
+import { Hotel, Calendar, User, LogOut, BedDouble, UtensilsCrossed, Presentation, PartyPopper } from 'lucide-react';
 
 const StaffNavbar = () => {
   const navigate = useNavigate();
@@ -21,12 +21,12 @@ const StaffNavbar = () => {
           <span className="text-xs bg-amber-100 text-amber-700 px-2 py-1 rounded-full font-medium">Staff</span>
         </div>
         <div className="flex items-center gap-6">
-          <button onClick={() => navigate('/staff/dashboard')} className="flex items-center gap-2 text-stone-500 hover:text-amber-700 text-sm"><Hotel className="w-4 h-4" /> Home</button>
-          <button onClick={() => navigate('/staff/rooms/create')} className="flex items-center gap-1.5 text-stone-500 hover:text-amber-700 text-sm"><PlusCircle className="w-4 h-4" /> <BedDouble className="w-4 h-4" /> Room</button>
-          <button onClick={() => navigate('/staff/tables/create')} className="flex items-center gap-1.5 text-stone-500 hover:text-amber-700 text-sm"><PlusCircle className="w-4 h-4" /> <UtensilsCrossed className="w-4 h-4" /> Table</button>
-          <button onClick={() => navigate('/staff/conference/create')} className="flex items-center gap-1.5 text-stone-500 hover:text-amber-700 text-sm"><PlusCircle className="w-4 h-4" /> <Presentation className="w-4 h-4" /> Conference</button>
-          <button onClick={() => navigate('/staff/venues/create')} className="flex items-center gap-1.5 text-stone-500 hover:text-amber-700 text-sm"><PlusCircle className="w-4 h-4" /> <PartyPopper className="w-4 h-4" /> Venue</button>
-          <button onClick={() => navigate('/staff/bookings')} className="flex items-center gap-2 text-amber-700 font-medium text-sm"><Calendar className="w-4 h-4" /> All Bookings</button>
+          <button onClick={() => navigate('/staff/dashboard')} className="flex items-center gap-1.5 text-stone-500 hover:text-amber-700 text-sm"><Hotel className="w-4 h-4" /> Home</button>
+          <button onClick={() => navigate('/staff/rooms/create')} className="flex items-center gap-1.5 text-stone-500 hover:text-amber-700 text-sm"><BedDouble className="w-4 h-4" /> Rooms</button>
+          <button onClick={() => navigate('/staff/tables/create')} className="flex items-center gap-1.5 text-stone-500 hover:text-amber-700 text-sm"><UtensilsCrossed className="w-4 h-4" /> Tables</button>
+          <button onClick={() => navigate('/staff/conference/create')} className="flex items-center gap-1.5 text-stone-500 hover:text-amber-700 text-sm"><Presentation className="w-4 h-4" /> Conference</button>
+          <button onClick={() => navigate('/staff/venues/create')} className="flex items-center gap-1.5 text-stone-500 hover:text-amber-700 text-sm"><PartyPopper className="w-4 h-4" /> Venues</button>
+          <button onClick={() => navigate('/staff/bookings')} className="flex items-center gap-1.5 text-amber-700 font-medium text-sm"><Calendar className="w-4 h-4" /> Bookings</button>
         </div>
         <div className="flex items-center gap-4">
           <button onClick={() => navigate('/staff/profile')} className="bg-amber-100 w-10 h-10 rounded-full flex items-center justify-center hover:bg-amber-200 transition">

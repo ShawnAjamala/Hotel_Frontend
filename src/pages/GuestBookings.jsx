@@ -8,7 +8,6 @@ import {
 import API from '../services/api';
 import GuestNavbar from '../components/GuestNavbar';
 import Footer from '../components/Footer';
-import GuestCancellationForm from '../components/GuestCancellationForm';
 
 const BOOKING_CONFIG = {
   room:       { icon: BedDouble, label: 'Room', fetchKey: 'bookings', mapFn: b => ({ ...b, resource: b.room, date: `${b.check_in} → ${b.check_out}` }) },
@@ -48,8 +47,6 @@ const GuestBookings = () => {
   const [actionLoading, setActionLoading] = useState(null);
   const [viewMode, setViewMode] = useState('list');
   const [page, setPage] = useState(1);
-  const [showCancellationForm, setShowCancellationForm] = useState(false);
-  const [selectedBooking, setSelectedBooking] = useState(null);
   const perPage = 6;
 
   const token = localStorage.getItem('token');
@@ -124,12 +121,7 @@ const GuestBookings = () => {
   };
 
   const handleRequestCancellation = (booking) => {
-    setSelectedBooking(booking);
-    setShowCancellationForm(true);
-  };
-
-  const handleCancellationSuccess = () => {
-    fetchAllBookings();
+    navigate('/guest/cancellation', { state: { booking } });
   };
 
   const CANCEL_ENDPOINTS = {
@@ -158,19 +150,6 @@ const GuestBookings = () => {
     <div className="min-h-screen bg-stone-50 font-sans">
       <GuestNavbar />
 
-      {/* Cancellation Form Modal */}
-      {showCancellationForm && selectedBooking && (
-        <GuestCancellationForm
-          booking={selectedBooking}
-          onClose={() => {
-            setShowCancellationForm(false);
-            setSelectedBooking(null);
-          }}
-          onSuccess={handleCancellationSuccess}
-        />
-      )}
-
-      {/* Confirmation Popup */}
       {popup.show && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={closePopup} />
@@ -202,7 +181,6 @@ const GuestBookings = () => {
         </div>
       )}
 
-      {/* Hero Section */}
       <section className="relative bg-stone-900 text-white py-16 px-8 overflow-hidden">
         <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=1200')] bg-cover bg-center opacity-30" />
         <div className="absolute inset-0 bg-gradient-to-r from-stone-900/90 to-transparent" />
@@ -215,7 +193,6 @@ const GuestBookings = () => {
       </section>
 
       <div className="max-w-5xl mx-auto px-8 py-10">
-        {/* Filters */}
         <div className="bg-white rounded-2xl border border-stone-200 p-4 -mt-12 relative z-10 shadow-lg mb-8">
           <div className="flex flex-wrap items-center gap-4">
             <div className="flex items-center gap-3">

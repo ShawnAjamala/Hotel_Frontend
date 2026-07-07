@@ -15,7 +15,7 @@ const Auth = () => {
   const [adminExists, setAdminExists] = useState(true);
   const [checkingAdmin, setCheckingAdmin] = useState(false);
 
-  // Check if user is already logged in
+  // Check if user is already logged in - ONLY ONCE on mount
   useEffect(() => {
     const token = localStorage.getItem('token');
     const user = JSON.parse(localStorage.getItem('user') || '{}');
@@ -25,7 +25,7 @@ const Auth = () => {
       else if (user.role === 'staff') navigate('/staff/dashboard');
       else if (user.role === 'admin') navigate('/admin/dashboard');
     }
-  }, [navigate]);
+  }, []);
 
   // Check if admin already exists - only on registration page
   useEffect(() => {
@@ -36,13 +36,11 @@ const Auth = () => {
           const token = localStorage.getItem('token');
           const headers = token ? { Authorization: `Bearer ${token}` } : {};
           
-          // Using the correct endpoint: /api/admin/admins/
           const res = await API.get('/admin/admins/', { headers });
           const admins = res.data?.admins || [];
           setAdminExists(admins.length > 0);
         } catch (error) {
           console.log('Admin check failed:', error);
-          // If endpoint fails (e.g., no admin exists yet), allow admin registration
           setAdminExists(false);
         } finally {
           setCheckingAdmin(false);
@@ -89,13 +87,13 @@ const Auth = () => {
     try {
       let res;
       if (isLogin) {
-        // Using correct login endpoint: /api/auth/login/
+        // LOGIN
         res = await API.post('/auth/login/', { 
           username: form.username, 
           password: form.password 
         });
       } else {
-        // Using correct register endpoint: /api/auth/register/
+        // REGISTER
         res = await API.post('/auth/register/', { 
           username: form.username, 
           email: form.email, 
@@ -104,24 +102,48 @@ const Auth = () => {
         });
       }
 
-      const { tokens, user } = res.data;
-      localStorage.setItem('token', tokens.access);
-      localStorage.setItem('user', JSON.stringify(user));
-
-      // Check if user needs to change password
-      if (user.must_change_password) {
-        // Redirect to change password page or login with message
-        navigate('/login');
+      // Check if response has the expected data
+      if (!res.data) {
+        setError('Invalid response from server');
+        setLoading(false);
         return;
       }
 
+      const { tokens, user } = res.data;
+      
+      // Store tokens and user data
+      localStorage.setItem('token', tokens.access);
+      localStorage.setItem('user', JSON.stringify(user));
+
       // Redirect based on role
-      if (user.role === 'guest') navigate('/guest/dashboard');
-      else if (user.role === 'staff') navigate('/staff/dashboard');
-      else if (user.role === 'admin') navigate('/admin/dashboard');
+      if (user.role === 'guest') {
+        navigate('/guest/dashboard');
+      } else if (user.role === 'staff') {
+        navigate('/staff/dashboard');
+      } else if (user.role === 'admin') {
+        navigate('/admin/dashboard');
+      } else {
+        setError('Unknown user role');
+        setLoading(false);
+      }
     } catch (err) {
-      const errorMsg = err.response?.data?.error || err.response?.data?.message || 'Something went wrong. Please try again.';
-      setError(errorMsg);
+      // Handle different error types
+      if (err.response) {
+        // The request was made and the server responded with a status code
+        // that falls out of the range of 2xx
+        const errorMsg = err.response.data?.error || 
+                        err.response.data?.message || 
+                        err.response.data?.detail ||
+                        'Something went wrong. Please try again.';
+        setError(errorMsg);
+      } else if (err.request) {
+        // The request was made but no response was received
+        setError('No response from server. Please check your connection.');
+      } else {
+        // Something happened in setting up the request that triggered an Error
+        setError('An unexpected error occurred. Please try again.');
+      }
+      setLoading(false);
     } finally {
       setLoading(false);
     }
@@ -244,11 +266,6 @@ const Auth = () => {
                   {adminExists && (
                     <p className="text-xs text-amber-600 mt-1.5 ml-1">
                       Staff and Admin accounts can only be created by administrators
-                    </p>
-                  )}
-                  {!adminExists && (
-                    <p className="text-xs text-emerald-600 mt-1.5 ml-1">
-                      First time setup: You can create the admin account
                     </p>
                   )}
                 </div>

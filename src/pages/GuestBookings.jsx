@@ -138,8 +138,16 @@ const GuestBookings = () => {
     venue: id => `/venues/my-booking/${id}/delete/`
   };
 
-  const canRequestCancellation = (status) => {
-    return ['confirmed', 'pending'].includes(status);
+  // Check if booking can request cancellation (paid + confirmed/pending)
+  const canRequestCancellation = (booking) => {
+    return booking.payment_status === 'paid' && 
+           ['confirmed', 'pending'].includes(booking.status);
+  };
+
+  // Check if booking can be directly cancelled (unpaid)
+  const canDirectCancel = (booking) => {
+    return booking.payment_status !== 'paid' && 
+           ['confirmed', 'pending'].includes(booking.status);
   };
 
   const canDelete = (status) => {
@@ -256,7 +264,8 @@ const GuestBookings = () => {
                   const Icon = booking.icon;
                   const key = `${booking.type}-${booking.id}`;
                   const isActioning = actionLoading === `cancel-${key}` || actionLoading === `delete-${key}`;
-                  const canRequest = canRequestCancellation(booking.status);
+                  const canRequest = canRequestCancellation(booking);
+                  const canDirect = canDirectCancel(booking);
                   const canDeleteBooking = canDelete(booking.status);
                   const isCancellationRequested = booking.status === 'cancellation_requested';
 
@@ -297,24 +306,27 @@ const GuestBookings = () => {
                             </span>
                           </div>
                           <div className="flex gap-1">
-                            {canRequest && booking.payment_status === 'paid' && (
+                            {/* Request Cancellation - for paid bookings */}
+                            {canRequest && (
                               <button
                                 onClick={() => handleRequestCancellation(booking)}
                                 className="p-2 text-orange-600 hover:bg-orange-50 rounded-lg transition"
-                                title="Request Cancellation"
+                                title="Request Cancellation & Refund"
                               >
                                 <AlertCircle className="w-5 h-5" />
                               </button>
                             )}
-                            {(booking.status === 'pending' || booking.status === 'confirmed') && booking.payment_status !== 'paid' && (
+                            {/* Direct Cancel - for unpaid bookings */}
+                            {canDirect && (
                               <button
                                 onClick={() => handleCancel(booking)}
                                 className="p-2 text-amber-600 hover:bg-amber-50 rounded-lg transition"
-                                title="Cancel"
+                                title="Cancel Booking"
                               >
                                 <XCircle className="w-5 h-5" />
                               </button>
                             )}
+                            {/* Delete - for completed/cancelled bookings */}
                             {canDeleteBooking && (
                               <button
                                 onClick={() => handleDelete(booking)}
@@ -336,7 +348,8 @@ const GuestBookings = () => {
                 {paginated.map(booking => {
                   const Icon = booking.icon;
                   const key = `${booking.type}-${booking.id}`;
-                  const canRequest = canRequestCancellation(booking.status);
+                  const canRequest = canRequestCancellation(booking);
+                  const canDirect = canDirectCancel(booking);
                   const canDeleteBooking = canDelete(booking.status);
                   const isCancellationRequested = booking.status === 'cancellation_requested';
 
@@ -373,7 +386,7 @@ const GuestBookings = () => {
                         </div>
                       </div>
                       <div className="flex gap-2 pt-4 border-t flex-wrap">
-                        {canRequest && booking.payment_status === 'paid' && (
+                        {canRequest && (
                           <button
                             onClick={() => handleRequestCancellation(booking)}
                             className="flex-1 py-2 text-sm bg-orange-50 text-orange-700 rounded-xl hover:bg-orange-100 font-medium"
@@ -382,7 +395,7 @@ const GuestBookings = () => {
                             Request Cancellation
                           </button>
                         )}
-                        {(booking.status === 'pending' || booking.status === 'confirmed') && booking.payment_status !== 'paid' && (
+                        {canDirect && (
                           <button
                             onClick={() => handleCancel(booking)}
                             className="flex-1 py-2 text-sm bg-amber-50 text-amber-700 rounded-xl hover:bg-amber-100 font-medium"

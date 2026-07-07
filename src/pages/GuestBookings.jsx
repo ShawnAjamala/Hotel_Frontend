@@ -121,6 +121,7 @@ const GuestBookings = () => {
   };
 
   const handleRequestCancellation = (booking) => {
+    console.log('Navigating to cancellation with:', booking);
     navigate('/guest/cancellation', { state: { booking } });
   };
 
@@ -138,13 +139,11 @@ const GuestBookings = () => {
     venue: id => `/venues/my-booking/${id}/delete/`
   };
 
-  // Check if booking can request cancellation (paid + confirmed/pending)
   const canRequestCancellation = (booking) => {
     return booking.payment_status === 'paid' && 
            ['confirmed', 'pending'].includes(booking.status);
   };
 
-  // Check if booking can be directly cancelled (unpaid)
   const canDirectCancel = (booking) => {
     return booking.payment_status !== 'paid' && 
            ['confirmed', 'pending'].includes(booking.status);
@@ -305,35 +304,32 @@ const GuestBookings = () => {
                               {booking.payment_status}
                             </span>
                           </div>
-                          <div className="flex gap-1">
+                          <div className="flex gap-2">
                             {/* Request Cancellation - for paid bookings */}
                             {canRequest && (
                               <button
                                 onClick={() => handleRequestCancellation(booking)}
-                                className="p-2 text-orange-600 hover:bg-orange-50 rounded-lg transition"
-                                title="Request Cancellation & Refund"
+                                className="px-3 py-1.5 bg-orange-100 text-orange-700 rounded-lg text-xs font-medium hover:bg-orange-200 transition"
                               >
-                                <AlertCircle className="w-5 h-5" />
+                                Request Cancellation
                               </button>
                             )}
                             {/* Direct Cancel - for unpaid bookings */}
                             {canDirect && (
                               <button
                                 onClick={() => handleCancel(booking)}
-                                className="p-2 text-amber-600 hover:bg-amber-50 rounded-lg transition"
-                                title="Cancel Booking"
+                                className="px-3 py-1.5 bg-amber-100 text-amber-700 rounded-lg text-xs font-medium hover:bg-amber-200 transition"
                               >
-                                <XCircle className="w-5 h-5" />
+                                Cancel
                               </button>
                             )}
                             {/* Delete - for completed/cancelled bookings */}
                             {canDeleteBooking && (
                               <button
                                 onClick={() => handleDelete(booking)}
-                                className="p-2 text-red-400 hover:bg-red-50 rounded-lg transition"
-                                title="Delete"
+                                className="px-3 py-1.5 bg-red-100 text-red-600 rounded-lg text-xs font-medium hover:bg-red-200 transition"
                               >
-                                <Trash2 className="w-5 h-5" />
+                                Delete
                               </button>
                             )}
                           </div>
@@ -389,27 +385,24 @@ const GuestBookings = () => {
                         {canRequest && (
                           <button
                             onClick={() => handleRequestCancellation(booking)}
-                            className="flex-1 py-2 text-sm bg-orange-50 text-orange-700 rounded-xl hover:bg-orange-100 font-medium"
+                            className="flex-1 py-2 text-sm bg-orange-100 text-orange-700 rounded-xl hover:bg-orange-200 font-medium transition"
                           >
-                            <AlertCircle className="w-4 h-4 inline mr-1" />
                             Request Cancellation
                           </button>
                         )}
                         {canDirect && (
                           <button
                             onClick={() => handleCancel(booking)}
-                            className="flex-1 py-2 text-sm bg-amber-50 text-amber-700 rounded-xl hover:bg-amber-100 font-medium"
+                            className="flex-1 py-2 text-sm bg-amber-100 text-amber-700 rounded-xl hover:bg-amber-200 font-medium transition"
                           >
-                            <XCircle className="w-4 h-4 inline mr-1" />
                             Cancel
                           </button>
                         )}
                         {canDeleteBooking && (
                           <button
                             onClick={() => handleDelete(booking)}
-                            className="flex-1 py-2 text-sm bg-red-50 text-red-500 rounded-xl hover:bg-red-100 font-medium"
+                            className="flex-1 py-2 text-sm bg-red-100 text-red-600 rounded-xl hover:bg-red-200 font-medium transition"
                           >
-                            <Trash2 className="w-4 h-4 inline mr-1" />
                             Delete
                           </button>
                         )}

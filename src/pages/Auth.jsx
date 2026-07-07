@@ -15,6 +15,7 @@ const Auth = () => {
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+    setError('');
   };
 
   const toggleMode = () => {
@@ -28,12 +29,32 @@ const Auth = () => {
     setError('');
     setLoading(true);
 
+    // Registration validation
+    if (!isLogin) {
+      if (form.password.length < 6) {
+        setError('Password must be at least 6 characters long');
+        setLoading(false);
+        return;
+      }
+
+      if (!form.email) {
+        setError('Email is required');
+        setLoading(false);
+        return;
+      }
+    }
+
     try {
       let res;
       if (isLogin) {
         res = await API.post('/auth/login/', { username: form.username, password: form.password });
       } else {
-        res = await API.post('/auth/register/', { username: form.username, email: form.email, password: form.password, role: form.role });
+        res = await API.post('/auth/register/', { 
+          username: form.username, 
+          email: form.email, 
+          password: form.password, 
+          role: form.role 
+        });
       }
 
       const { tokens, user } = res.data;
@@ -118,7 +139,7 @@ const Auth = () => {
                     value={form.password}
                     onChange={handleChange}
                     className="w-full pl-10 pr-10 py-3 border border-stone-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm text-stone-700"
-                    placeholder="Password"
+                    placeholder="Password (min 6 characters)"
                     required
                   />
                   <button
@@ -129,6 +150,11 @@ const Auth = () => {
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
+                {!isLogin && (
+                  <p className="text-xs text-stone-400 mt-1.5 ml-1">
+                    Password must be at least 6 characters
+                  </p>
+                )}
               </div>
 
               {!isLogin && (

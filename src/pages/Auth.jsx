@@ -21,11 +21,17 @@ const Auth = () => {
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     
     if (token && user.role) {
+      // Check if user needs to change password FIRST
+      if (user.must_change_password) {
+        navigate('/change-password');
+        return;
+      }
+      
       if (user.role === 'guest') navigate('/guest/dashboard');
       else if (user.role === 'staff') navigate('/staff/dashboard');
       else if (user.role === 'admin') navigate('/admin/dashboard');
     }
-  }, []);
+  }, [navigate]);
 
   // Check if admin already exists - only on registration page
   useEffect(() => {
@@ -114,6 +120,12 @@ const Auth = () => {
       // Store tokens and user data
       localStorage.setItem('token', tokens.access);
       localStorage.setItem('user', JSON.stringify(user));
+
+      // Check if user needs to change password (for staff accounts)
+      if (user.must_change_password) {
+        navigate('/change-password');
+        return;
+      }
 
       // Redirect based on role
       if (user.role === 'guest') {

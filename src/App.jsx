@@ -4,6 +4,7 @@ import Auth from "./pages/Auth";
 import GuestDashboard from "./pages/GuestDashboard";
 import StaffDashboard from "./pages/StaffDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
+import ChangePassword from './pages/ChangePassword';
 import AdminUsers from "./pages/AdminUsers";
 import AdminApprovals from "./pages/AdminApprovals";
 import AdminBookings from "./pages/AdminBookings";
@@ -47,6 +48,7 @@ function App() {
         <Route path="/admin/staff/create" element={<AdminCreateStaff />} />
 
         {/* Staff Management */}
+        <Route path="/change-password" element={<ChangePassword />} />
         <Route path="/staff/rooms/create" element={<StaffRooms />} />
         <Route path="/staff/tables/create" element={<StaffTables />} />
         <Route path="/staff/conference/create" element={<StaffConference />} />

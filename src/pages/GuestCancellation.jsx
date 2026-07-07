@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   ArrowLeft, AlertCircle, Send, Calendar, DollarSign, 
   BedDouble, UtensilsCrossed, Presentation, PartyPopper,
-  CheckCircle, XCircle, Clock
+  CheckCircle
 } from 'lucide-react';
 import API from '../services/api';
 import GuestNavbar from '../components/GuestNavbar';
@@ -14,18 +14,17 @@ const GuestCancellation = () => {
   const location = useLocation();
   const [booking, setBooking] = useState(null);
   const [reason, setReason] = useState('');
-  const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
 
-  // Get booking from location state or fetch from API
   useEffect(() => {
     const bookingData = location.state?.booking;
     if (bookingData) {
+      console.log(' Booking data received:', bookingData);
       setBooking(bookingData);
     } else {
-      // If no booking data, redirect back
+      console.log('No booking data, redirecting...');
       navigate('/guest/bookings');
     }
   }, [location, navigate]);

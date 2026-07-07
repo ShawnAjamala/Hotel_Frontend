@@ -13,8 +13,9 @@ const Auth = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [adminExists, setAdminExists] = useState(false);
+  const [checkingAdmin, setCheckingAdmin] = useState(true);
 
-  // Check if admin already exists
+  // Check if admin already exists - only for registration page
   useEffect(() => {
     const checkAdmin = async () => {
       try {
@@ -23,10 +24,18 @@ const Auth = () => {
       } catch {
         // If endpoint fails, assume admin exists
         setAdminExists(true);
+      } finally {
+        setCheckingAdmin(false);
       }
     };
-    checkAdmin();
-  }, []);
+    
+    // Only check if on registration page
+    if (!isLogin) {
+      checkAdmin();
+    } else {
+      setCheckingAdmin(false);
+    }
+  }, [isLogin]);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -62,7 +71,10 @@ const Auth = () => {
     try {
       let res;
       if (isLogin) {
-        res = await API.post('/auth/login/', { username: form.username, password: form.password });
+        res = await API.post('/auth/login/', { 
+          username: form.username, 
+          password: form.password 
+        });
       } else {
         res = await API.post('/auth/register/', { 
           username: form.username, 
@@ -76,6 +88,13 @@ const Auth = () => {
       localStorage.setItem('token', tokens.access);
       localStorage.setItem('user', JSON.stringify(user));
 
+      // Check if user needs to change password
+      if (user.must_change_password) {
+        // You might want to handle this case
+        navigate('/login');
+        return;
+      }
+
       if (user.role === 'guest') navigate('/guest/dashboard');
       else if (user.role === 'staff') navigate('/staff/dashboard');
       else if (user.role === 'admin') navigate('/admin/dashboard');
@@ -85,6 +104,27 @@ const Auth = () => {
       setLoading(false);
     }
   };
+
+  // If already logged in, redirect to dashboard
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    
+    if (token && user.role) {
+      if (user.role === 'guest') navigate('/guest/dashboard');
+      else if (user.role === 'staff') navigate('/staff/dashboard');
+      else if (user.role === 'admin') navigate('/admin/dashboard');
+    }
+  }, [navigate]);
+
+  // Show loading while checking admin status
+  if (checkingAdmin) {
+    return (
+      <div className="min-h-screen bg-stone-50 flex items-center justify-center">
+        <div className="animate-spin w-10 h-10 border-4 border-amber-700 border-t-transparent rounded-full" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-stone-50 flex flex-col">

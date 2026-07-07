@@ -23,6 +23,7 @@ import GuestBookConference from "./pages/GuestBookConference";
 import GuestVenues from "./pages/GuestVenues";
 import GuestBookVenue from "./pages/GuestBookVenue";
 import GuestBookings from "./pages/GuestBookings";
+import GuestCancellation from "./pages/GuestCancellation";
 import Profile from "./pages/Profile";
 
 function App() {
@@ -65,6 +66,7 @@ function App() {
 
         {/* Guest Bookings & Profile */}
         <Route path="/guest/bookings" element={<GuestBookings />} />
+        <Route path="/guest/cancellation" element={<GuestCancellation />} />
         <Route path="/guest/profile" element={<Profile />} />
         <Route path="/staff/profile" element={<Profile />} />
         <Route path="/admin/profile" element={<Profile />} />

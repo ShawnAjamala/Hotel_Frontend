@@ -12,25 +12,43 @@ const Auth = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [adminExists, setAdminExists] = useState(false);
-  const [checkingAdmin, setCheckingAdmin] = useState(true);
+  const [adminExists, setAdminExists] = useState(true);
+  const [checkingAdmin, setCheckingAdmin] = useState(false);
 
-  // Check if admin already exists - only for registration page
+  // Check if user is already logged in
   useEffect(() => {
-    const checkAdmin = async () => {
-      try {
-        const res = await API.get('/admin/admins/');
-        setAdminExists(res.data.total > 0);
-      } catch {
-        // If endpoint fails, assume admin exists
-        setAdminExists(true);
-      } finally {
-        setCheckingAdmin(false);
-      }
-    };
+    const token = localStorage.getItem('token');
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
     
-    // Only check if on registration page
+    if (token && user.role) {
+      if (user.role === 'guest') navigate('/guest/dashboard');
+      else if (user.role === 'staff') navigate('/staff/dashboard');
+      else if (user.role === 'admin') navigate('/admin/dashboard');
+    }
+  }, [navigate]);
+
+  // Check if admin already exists - only on registration page
+  useEffect(() => {
     if (!isLogin) {
+      const checkAdmin = async () => {
+        setCheckingAdmin(true);
+        try {
+          const token = localStorage.getItem('token');
+          const headers = token ? { Authorization: `Bearer ${token}` } : {};
+          
+          // Using the correct endpoint: /api/admin/admins/
+          const res = await API.get('/admin/admins/', { headers });
+          const admins = res.data?.admins || [];
+          setAdminExists(admins.length > 0);
+        } catch (error) {
+          console.log('Admin check failed:', error);
+          // If endpoint fails (e.g., no admin exists yet), allow admin registration
+          setAdminExists(false);
+        } finally {
+          setCheckingAdmin(false);
+        }
+      };
+      
       checkAdmin();
     } else {
       setCheckingAdmin(false);
@@ -71,11 +89,13 @@ const Auth = () => {
     try {
       let res;
       if (isLogin) {
+        // Using correct login endpoint: /api/auth/login/
         res = await API.post('/auth/login/', { 
           username: form.username, 
           password: form.password 
         });
       } else {
+        // Using correct register endpoint: /api/auth/register/
         res = await API.post('/auth/register/', { 
           username: form.username, 
           email: form.email, 
@@ -90,38 +110,31 @@ const Auth = () => {
 
       // Check if user needs to change password
       if (user.must_change_password) {
-        // You might want to handle this case
+        // Redirect to change password page or login with message
         navigate('/login');
         return;
       }
 
+      // Redirect based on role
       if (user.role === 'guest') navigate('/guest/dashboard');
       else if (user.role === 'staff') navigate('/staff/dashboard');
       else if (user.role === 'admin') navigate('/admin/dashboard');
     } catch (err) {
-      setError(err.response?.data?.error || 'Something went wrong. Please try again.');
+      const errorMsg = err.response?.data?.error || err.response?.data?.message || 'Something went wrong. Please try again.';
+      setError(errorMsg);
     } finally {
       setLoading(false);
     }
   };
 
-  // If already logged in, redirect to dashboard
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-    
-    if (token && user.role) {
-      if (user.role === 'guest') navigate('/guest/dashboard');
-      else if (user.role === 'staff') navigate('/staff/dashboard');
-      else if (user.role === 'admin') navigate('/admin/dashboard');
-    }
-  }, [navigate]);
-
-  // Show loading while checking admin status
+  // Show loading while checking admin status on registration page
   if (checkingAdmin) {
     return (
-      <div className="min-h-screen bg-stone-50 flex items-center justify-center">
-        <div className="animate-spin w-10 h-10 border-4 border-amber-700 border-t-transparent rounded-full" />
+      <div className="min-h-screen bg-stone-50 flex flex-col">
+        <Navbar />
+        <div className="flex-1 flex items-center justify-center">
+          <div className="animate-spin w-10 h-10 border-4 border-amber-700 border-t-transparent rounded-full" />
+        </div>
       </div>
     );
   }
@@ -233,6 +246,11 @@ const Auth = () => {
                       Staff and Admin accounts can only be created by administrators
                     </p>
                   )}
+                  {!adminExists && (
+                    <p className="text-xs text-emerald-600 mt-1.5 ml-1">
+                      First time setup: You can create the admin account
+                    </p>
+                  )}
                 </div>
               )}
 
@@ -241,7 +259,12 @@ const Auth = () => {
                 disabled={loading}
                 className="w-full bg-amber-700 text-white py-3 rounded-xl font-semibold hover:bg-amber-800 transition flex items-center justify-center gap-2 disabled:opacity-50 text-sm"
               >
-                {loading ? 'Please wait...' : (
+                {loading ? (
+                  <>
+                    <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full" />
+                    Please wait...
+                  </>
+                ) : (
                   isLogin ? (
                     <>Sign In <LogIn className="w-4 h-4" /></>
                   ) : (

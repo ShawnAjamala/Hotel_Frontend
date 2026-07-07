@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Hotel, User, Mail, Lock, Eye, EyeOff, LogIn, UserPlus } from 'lucide-react';
 import API from '../services/api';
@@ -12,6 +12,21 @@ const Auth = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [adminExists, setAdminExists] = useState(false);
+
+  // Check if admin already exists
+  useEffect(() => {
+    const checkAdmin = async () => {
+      try {
+        const res = await API.get('/admin/admins/');
+        setAdminExists(res.data.total > 0);
+      } catch {
+        // If endpoint fails, assume admin exists
+        setAdminExists(true);
+      }
+    };
+    checkAdmin();
+  }, []);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -166,9 +181,18 @@ const Auth = () => {
                     className="w-full px-4 py-3 border border-stone-200 rounded-xl focus:ring-2 focus:ring-amber-500 outline-none text-sm text-stone-700 bg-white"
                   >
                     <option value="guest">Guest</option>
-                    <option value="staff">Staff</option>
-                    <option value="admin">Admin</option>
+                    {!adminExists && (
+                      <>
+                        <option value="staff">Staff</option>
+                        <option value="admin">Admin</option>
+                      </>
+                    )}
                   </select>
+                  {adminExists && (
+                    <p className="text-xs text-amber-600 mt-1.5 ml-1">
+                      Staff and Admin accounts can only be created by administrators
+                    </p>
+                  )}
                 </div>
               )}
 

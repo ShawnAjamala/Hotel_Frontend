@@ -7,11 +7,13 @@ import AdminDashboard from "./pages/AdminDashboard";
 import AdminUsers from "./pages/AdminUsers";
 import AdminApprovals from "./pages/AdminApprovals";
 import AdminBookings from "./pages/AdminBookings";
+import AdminCreateStaff from "./pages/AdminCreateStaff";
 import StaffRooms from "./pages/StaffRooms";
 import StaffTables from "./pages/StaffTables";
 import StaffConference from "./pages/StaffConference";
 import StaffVenues from "./pages/StaffVenues";
 import StaffBookings from "./pages/StaffBookings";
+import StaffCancellationRequests from "./pages/StaffCancellationRequests";
 import GuestRooms from "./pages/GuestRooms";
 import GuestBookRoom from "./pages/GuestBookRoom";
 import GuestTables from "./pages/GuestTables";
@@ -41,6 +43,7 @@ function App() {
         <Route path="/admin/users" element={<AdminUsers />} />
         <Route path="/admin/staff/pending" element={<AdminApprovals />} />
         <Route path="/admin/bookings" element={<AdminBookings />} />
+        <Route path="/admin/staff/create" element={<AdminCreateStaff />} />
 
         {/* Staff Management */}
         <Route path="/staff/rooms/create" element={<StaffRooms />} />
@@ -48,6 +51,7 @@ function App() {
         <Route path="/staff/conference/create" element={<StaffConference />} />
         <Route path="/staff/venues/create" element={<StaffVenues />} />
         <Route path="/staff/bookings" element={<StaffBookings />} />
+        <Route path="/staff/cancellations" element={<StaffCancellationRequests />} />
 
         {/* Guest Browse & Book */}
         <Route path="/guest/rooms" element={<GuestRooms />} />

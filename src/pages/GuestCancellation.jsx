@@ -21,7 +21,7 @@ const GuestCancellation = () => {
   useEffect(() => {
     const bookingData = location.state?.booking;
     if (bookingData) {
-      console.log(' Booking data received:', bookingData);
+      console.log('Booking data received:', bookingData);
       setBooking(bookingData);
     } else {
       console.log('No booking data, redirecting...');

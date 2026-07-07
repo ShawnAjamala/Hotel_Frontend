@@ -120,9 +120,16 @@ const GuestBookings = () => {
     });
   };
 
+  // FIX: strip out `icon` (a React component / Symbol(react.forward_ref))
+  // before passing the booking into router state. window.history.pushState
+  // uses the structured clone algorithm under the hood, and React elements
+  // / components cannot be structured-cloned. Previously this threw
+  // "Uncaught DataCloneError" and silently aborted the navigation, so the
+  // user never actually left the bookings page.
   const handleRequestCancellation = (booking) => {
-    console.log('Navigating to cancellation with:', booking);
-    navigate('/guest/cancellation', { state: { booking } });
+    const { icon, ...serializableBooking } = booking;
+    console.log('Navigating to cancellation with:', serializableBooking);
+    navigate('/guest/cancellation', { state: { booking: serializableBooking } });
   };
 
   const CANCEL_ENDPOINTS = {

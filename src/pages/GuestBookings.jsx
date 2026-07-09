@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { 
   BedDouble, UtensilsCrossed, Presentation, PartyPopper, 
   Calendar, XCircle, Trash2, Filter, Grid3X3, List,
-  AlertCircle, Clock
+  AlertCircle, Clock, Edit3
 } from 'lucide-react';
 import API from '../services/api';
 import GuestNavbar from '../components/GuestNavbar';
@@ -120,16 +120,26 @@ const GuestBookings = () => {
     });
   };
 
-  // FIX: strip out `icon` (a React component / Symbol(react.forward_ref))
-  // before passing the booking into router state. window.history.pushState
-  // uses the structured clone algorithm under the hood, and React elements
-  // / components cannot be structured-cloned. Previously this threw
-  // "Uncaught DataCloneError" and silently aborted the navigation, so the
-  // user never actually left the bookings page.
+  // Navigate to Edit
+  const handleEditBooking = (booking) => {
+    const { icon, ...cleanBooking } = booking;
+    navigate('/guest/cancellation', { 
+      state: { 
+        booking: cleanBooking, 
+        action: 'edit' 
+      } 
+    });
+  };
+
+  // Navigate to Cancel
   const handleRequestCancellation = (booking) => {
-    const { icon, ...serializableBooking } = booking;
-    console.log('Navigating to cancellation with:', serializableBooking);
-    navigate('/guest/cancellation', { state: { booking: serializableBooking } });
+    const { icon, ...cleanBooking } = booking;
+    navigate('/guest/cancellation', { 
+      state: { 
+        booking: cleanBooking, 
+        action: 'cancel' 
+      } 
+    });
   };
 
   const CANCEL_ENDPOINTS = {
@@ -144,6 +154,10 @@ const GuestBookings = () => {
     table: id => `/tables/my-booking/${id}/delete/`,
     conference: id => `/conference/my-booking/${id}/delete/`,
     venue: id => `/venues/my-booking/${id}/delete/`
+  };
+
+  const canEdit = (booking) => {
+    return booking.status === 'confirmed' && booking.payment_status === 'paid';
   };
 
   const canRequestCancellation = (booking) => {
@@ -270,6 +284,7 @@ const GuestBookings = () => {
                   const Icon = booking.icon;
                   const key = `${booking.type}-${booking.id}`;
                   const isActioning = actionLoading === `cancel-${key}` || actionLoading === `delete-${key}`;
+                  const canEditBooking = canEdit(booking);
                   const canRequest = canRequestCancellation(booking);
                   const canDirect = canDirectCancel(booking);
                   const canDeleteBooking = canDelete(booking.status);
@@ -311,13 +326,24 @@ const GuestBookings = () => {
                               {booking.payment_status}
                             </span>
                           </div>
-                          <div className="flex gap-2">
+                          <div className="flex gap-2 flex-wrap">
+                            {/* Edit - for confirmed paid bookings */}
+                            {canEditBooking && (
+                              <button
+                                onClick={() => handleEditBooking(booking)}
+                                className="px-3 py-1.5 bg-blue-100 text-blue-700 rounded-lg text-xs font-medium hover:bg-blue-200 transition"
+                              >
+                                <Edit3 className="w-3 h-3 inline mr-1" />
+                                Edit
+                              </button>
+                            )}
                             {/* Request Cancellation - for paid bookings */}
                             {canRequest && (
                               <button
                                 onClick={() => handleRequestCancellation(booking)}
                                 className="px-3 py-1.5 bg-orange-100 text-orange-700 rounded-lg text-xs font-medium hover:bg-orange-200 transition"
                               >
+                                <AlertCircle className="w-3 h-3 inline mr-1" />
                                 Request Cancellation
                               </button>
                             )}
@@ -327,6 +353,7 @@ const GuestBookings = () => {
                                 onClick={() => handleCancel(booking)}
                                 className="px-3 py-1.5 bg-amber-100 text-amber-700 rounded-lg text-xs font-medium hover:bg-amber-200 transition"
                               >
+                                <XCircle className="w-3 h-3 inline mr-1" />
                                 Cancel
                               </button>
                             )}
@@ -336,6 +363,7 @@ const GuestBookings = () => {
                                 onClick={() => handleDelete(booking)}
                                 className="px-3 py-1.5 bg-red-100 text-red-600 rounded-lg text-xs font-medium hover:bg-red-200 transition"
                               >
+                                <Trash2 className="w-3 h-3 inline mr-1" />
                                 Delete
                               </button>
                             )}
@@ -351,6 +379,7 @@ const GuestBookings = () => {
                 {paginated.map(booking => {
                   const Icon = booking.icon;
                   const key = `${booking.type}-${booking.id}`;
+                  const canEditBooking = canEdit(booking);
                   const canRequest = canRequestCancellation(booking);
                   const canDirect = canDirectCancel(booking);
                   const canDeleteBooking = canDelete(booking.status);
@@ -389,11 +418,21 @@ const GuestBookings = () => {
                         </div>
                       </div>
                       <div className="flex gap-2 pt-4 border-t flex-wrap">
+                        {canEditBooking && (
+                          <button
+                            onClick={() => handleEditBooking(booking)}
+                            className="flex-1 py-2 text-sm bg-blue-100 text-blue-700 rounded-xl hover:bg-blue-200 font-medium transition"
+                          >
+                            <Edit3 className="w-4 h-4 inline mr-1" />
+                            Edit
+                          </button>
+                        )}
                         {canRequest && (
                           <button
                             onClick={() => handleRequestCancellation(booking)}
                             className="flex-1 py-2 text-sm bg-orange-100 text-orange-700 rounded-xl hover:bg-orange-200 font-medium transition"
                           >
+                            <AlertCircle className="w-4 h-4 inline mr-1" />
                             Request Cancellation
                           </button>
                         )}
@@ -402,6 +441,7 @@ const GuestBookings = () => {
                             onClick={() => handleCancel(booking)}
                             className="flex-1 py-2 text-sm bg-amber-100 text-amber-700 rounded-xl hover:bg-amber-200 font-medium transition"
                           >
+                            <XCircle className="w-4 h-4 inline mr-1" />
                             Cancel
                           </button>
                         )}
@@ -410,6 +450,7 @@ const GuestBookings = () => {
                             onClick={() => handleDelete(booking)}
                             className="flex-1 py-2 text-sm bg-red-100 text-red-600 rounded-xl hover:bg-red-200 font-medium transition"
                           >
+                            <Trash2 className="w-4 h-4 inline mr-1" />
                             Delete
                           </button>
                         )}

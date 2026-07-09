@@ -4,6 +4,12 @@ Welcome to the Grand Horizon Hotel frontend application – a modern, full-featu
 
 This application provides a seamless experience for guests, staff, and admins to manage hotel operations, from browsing and booking rooms to handling reservations and administrative oversight.
 
+
+Project Repository: https://github.com/ShawnAjamala/Hotel_Frontend
+
+Live Demo: https://hotel-frontend-dun.vercel.app/
+
+
 Table of Contents
 Features
 
@@ -239,8 +245,6 @@ This project is licensed under the MIT License.
 
 Author
 Shawn Ajamala
-
-GitHub: @ShawnAjamala
 
 Project Repository: https://github.com/ShawnAjamala/Hotel_Frontend
 

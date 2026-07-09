@@ -8,12 +8,10 @@ const Auth = () => {
   const navigate = useNavigate();
 
   const [isLogin, setIsLogin] = useState(true);
-  const [form, setForm] = useState({ username: '', email: '', password: '', role: 'guest' });
+  const [form, setForm] = useState({ username: '', email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [adminExists, setAdminExists] = useState(true);
-  const [checkingAdmin, setCheckingAdmin] = useState(false);
 
   // Check if user is already logged in - ONLY ONCE on mount
   useEffect(() => {
@@ -21,7 +19,6 @@ const Auth = () => {
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     
     if (token && user.role) {
-      // Check if user needs to change password FIRST
       if (user.must_change_password) {
         navigate('/change-password');
         return;
@@ -33,32 +30,6 @@ const Auth = () => {
     }
   }, [navigate]);
 
-  // Check if admin already exists - only on registration page
-  useEffect(() => {
-    if (!isLogin) {
-      const checkAdmin = async () => {
-        setCheckingAdmin(true);
-        try {
-          const token = localStorage.getItem('token');
-          const headers = token ? { Authorization: `Bearer ${token}` } : {};
-          
-          const res = await API.get('/admin/admins/', { headers });
-          const admins = res.data?.admins || [];
-          setAdminExists(admins.length > 0);
-        } catch (error) {
-          console.log('Admin check failed:', error);
-          setAdminExists(false);
-        } finally {
-          setCheckingAdmin(false);
-        }
-      };
-      
-      checkAdmin();
-    } else {
-      setCheckingAdmin(false);
-    }
-  }, [isLogin]);
-
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
     setError('');
@@ -67,7 +38,7 @@ const Auth = () => {
   const toggleMode = () => {
     setIsLogin(!isLogin);
     setError('');
-    setForm({ username: '', email: '', password: '', role: 'guest' });
+    setForm({ username: '', email: '', password: '' });
   };
 
   const handleSubmit = async (e) => {
@@ -93,22 +64,19 @@ const Auth = () => {
     try {
       let res;
       if (isLogin) {
-        // LOGIN
         res = await API.post('/auth/login/', { 
           username: form.username, 
           password: form.password 
         });
       } else {
-        // REGISTER
         res = await API.post('/auth/register/', { 
           username: form.username, 
           email: form.email, 
-          password: form.password, 
-          role: form.role 
+          password: form.password,
+          role: 'guest'
         });
       }
 
-      // Check if response has the expected data
       if (!res.data) {
         setError('Invalid response from server');
         setLoading(false);
@@ -117,17 +85,14 @@ const Auth = () => {
 
       const { tokens, user } = res.data;
       
-      // Store tokens and user data
       localStorage.setItem('token', tokens.access);
       localStorage.setItem('user', JSON.stringify(user));
 
-      // Check if user needs to change password (for staff accounts)
       if (user.must_change_password) {
         navigate('/change-password');
         return;
       }
 
-      // Redirect based on role
       if (user.role === 'guest') {
         navigate('/guest/dashboard');
       } else if (user.role === 'staff') {
@@ -139,20 +104,15 @@ const Auth = () => {
         setLoading(false);
       }
     } catch (err) {
-      // Handle different error types
       if (err.response) {
-        // The request was made and the server responded with a status code
-        // that falls out of the range of 2xx
         const errorMsg = err.response.data?.error || 
                         err.response.data?.message || 
                         err.response.data?.detail ||
                         'Something went wrong. Please try again.';
         setError(errorMsg);
       } else if (err.request) {
-        // The request was made but no response was received
         setError('No response from server. Please check your connection.');
       } else {
-        // Something happened in setting up the request that triggered an Error
         setError('An unexpected error occurred. Please try again.');
       }
       setLoading(false);
@@ -161,45 +121,33 @@ const Auth = () => {
     }
   };
 
-  // Show loading while checking admin status on registration page
-  if (checkingAdmin) {
-    return (
-      <div className="min-h-screen bg-stone-50 flex flex-col">
-        <Navbar />
-        <div className="flex-1 flex items-center justify-center">
-          <div className="animate-spin w-10 h-10 border-4 border-amber-700 border-t-transparent rounded-full" />
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-stone-50 flex flex-col">
       <Navbar />
 
-      <div className="flex-1 flex items-center justify-center px-4 py-10">
+      <div className="flex-1 flex items-center justify-center px-4 py-8">
         <div className="bg-white rounded-3xl shadow-xl border border-stone-100 overflow-hidden w-full max-w-sm">
           
           {/* Header */}
-          <div className="bg-gradient-to-r from-amber-700 to-amber-600 px-6 py-6 text-center text-white">
-            <div className="bg-white/20 w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3">
-              <Hotel className="w-7 h-7 text-white" />
+          <div className="bg-gradient-to-r from-amber-700 to-amber-600 px-6 py-5 text-center text-white">
+            <div className="bg-white/20 w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-2">
+              <Hotel className="w-6 h-6 text-white" />
             </div>
             <h2 className="text-xl font-bold">{isLogin ? 'Welcome Back' : 'Create Account'}</h2>
-            <p className="text-amber-100 text-sm mt-1">
+            <p className="text-amber-100 text-sm mt-0.5">
               {isLogin ? 'Sign in to continue' : 'Join Grand Horizon Hotel'}
             </p>
           </div>
 
           {/* Form */}
-          <div className="px-6 py-5">
+          <div className="px-6 py-4">
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-2.5 rounded-xl mb-4 text-sm text-center">
+              <div className="bg-red-50 border border-red-200 text-red-600 px-3 py-2 rounded-xl mb-3 text-sm text-center">
                 {error}
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-3">
+            <form onSubmit={handleSubmit} className="space-y-2.5">
               <div>
                 <div className="relative">
                   <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
@@ -208,7 +156,7 @@ const Auth = () => {
                     name="username"
                     value={form.username}
                     onChange={handleChange}
-                    className="w-full pl-10 pr-4 py-3 border border-stone-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm text-stone-700"
+                    className="w-full pl-10 pr-3 py-2.5 border border-stone-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm text-stone-700"
                     placeholder="Username"
                     required
                   />
@@ -224,7 +172,7 @@ const Auth = () => {
                       name="email"
                       value={form.email}
                       onChange={handleChange}
-                      className="w-full pl-10 pr-4 py-3 border border-stone-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm text-stone-700"
+                      className="w-full pl-10 pr-3 py-2.5 border border-stone-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm text-stone-700"
                       placeholder="Email"
                       required={!isLogin}
                     />
@@ -240,7 +188,7 @@ const Auth = () => {
                     name="password"
                     value={form.password}
                     onChange={handleChange}
-                    className="w-full pl-10 pr-10 py-3 border border-stone-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm text-stone-700"
+                    className="w-full pl-10 pr-10 py-2.5 border border-stone-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm text-stone-700"
                     placeholder="Password (min 6 characters)"
                     required
                   />
@@ -253,40 +201,16 @@ const Auth = () => {
                   </button>
                 </div>
                 {!isLogin && (
-                  <p className="text-xs text-stone-400 mt-1.5 ml-1">
+                  <p className="text-xs text-stone-400 mt-1 ml-1">
                     Password must be at least 6 characters
                   </p>
                 )}
               </div>
 
-              {!isLogin && (
-                <div>
-                  <select
-                    name="role"
-                    value={form.role}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 border border-stone-200 rounded-xl focus:ring-2 focus:ring-amber-500 outline-none text-sm text-stone-700 bg-white"
-                  >
-                    <option value="guest">Guest</option>
-                    {!adminExists && (
-                      <>
-                        <option value="staff">Staff</option>
-                        <option value="admin">Admin</option>
-                      </>
-                    )}
-                  </select>
-                  {adminExists && (
-                    <p className="text-xs text-amber-600 mt-1.5 ml-1">
-                      Staff and Admin accounts can only be created by administrators
-                    </p>
-                  )}
-                </div>
-              )}
-
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-amber-700 text-white py-3 rounded-xl font-semibold hover:bg-amber-800 transition flex items-center justify-center gap-2 disabled:opacity-50 text-sm"
+                className="w-full bg-amber-700 text-white py-2.5 rounded-xl font-semibold hover:bg-amber-800 transition flex items-center justify-center gap-2 disabled:opacity-50 text-sm"
               >
                 {loading ? (
                   <>
@@ -303,7 +227,7 @@ const Auth = () => {
               </button>
             </form>
 
-            <p className="text-center text-stone-400 text-sm mt-4">
+            <p className="text-center text-stone-400 text-sm mt-3">
               {isLogin ? "Don't have an account?" : 'Already have an account?'}{' '}
               <button onClick={toggleMode} className="text-amber-700 font-medium hover:underline">
                 {isLogin ? 'Sign up' : 'Sign in'}

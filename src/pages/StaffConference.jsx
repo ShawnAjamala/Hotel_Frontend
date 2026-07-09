@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Edit, Trash2, Presentation, X, ImagePlus, Grid3X3, List } from 'lucide-react';
+import { Plus, Edit, Trash2, Presentation, X, ImagePlus, Grid3X3, List, Package, PlusCircle, MinusCircle } from 'lucide-react';
 import API from '../services/api';
 import StaffNavbar from '../components/StaffNavbar';
 import Footer from '../components/Footer';
@@ -15,7 +15,16 @@ const StaffConference = () => {
   const [page, setPage] = useState(1);
   const perPage = 6;
 
-  const [form, setForm] = useState({ name: '', capacity: '', price_per_hour: '', features: '', additional_packages: '' });
+  const [form, setForm] = useState({ 
+    name: '', 
+    capacity: '', 
+    price_per_hour: '', 
+    features: '', 
+    additional_packages: '' 
+  });
+  const [packageItems, setPackageItems] = useState([]);
+  const [packageName, setPackageName] = useState('');
+  const [packagePrice, setPackagePrice] = useState('');
   const [image, setImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
 
@@ -23,13 +32,121 @@ const StaffConference = () => {
   const headers = { Authorization: `Bearer ${token}` };
 
   useEffect(() => { fetchRooms(); }, []);
-  const fetchRooms = async () => { setLoading(true); try { const res = await API.get('/conference/', { headers }); setRooms(Array.isArray(res.data) ? res.data : []); } catch (err) {} setLoading(false); };
-  const handleImageChange = (e) => { const file = e.target.files[0]; if (file) { setImage(file); setImagePreview(URL.createObjectURL(file)); } };
-  const handleCreate = async (e) => { e.preventDefault(); const fd = new FormData(); Object.entries(form).forEach(([k,v]) => fd.append(k,v)); if(image) fd.append('image',image); try { await API.post('/conference/create/', fd, { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' } }); resetForm(); fetchRooms(); } catch (err) {} };
-  const handleUpdate = async (e) => { e.preventDefault(); const fd = new FormData(); Object.entries(form).forEach(([k,v]) => fd.append(k,v)); if(image) fd.append('image',image); try { await API.put(`/conference/${editingRoom.id}/update/`, fd, { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' } }); resetForm(); fetchRooms(); } catch (err) {} };
-  const handleDelete = async (id) => { if (!window.confirm('Deactivate?')) return; try { await API.delete(`/conference/${id}/delete/`, { headers }); fetchRooms(); } catch (err) {} };
-  const openEdit = (r) => { setEditingRoom(r); setForm({ name: r.name, capacity: r.capacity, price_per_hour: parseFloat(r.price_per_hour)||'', features: r.features||'', additional_packages: r.additional_packages||'' }); setImagePreview(r.image||null); setImage(null); setShowForm(true); };
-  const resetForm = () => { setForm({ name:'', capacity:'', price_per_hour:'', features:'', additional_packages:'' }); setImage(null); setImagePreview(null); setEditingRoom(null); setShowForm(false); };
+
+  const fetchRooms = async () => { 
+    setLoading(true); 
+    try { 
+      const res = await API.get('/conference/', { headers }); 
+      setRooms(Array.isArray(res.data) ? res.data : []); 
+    } catch (err) {} 
+    setLoading(false); 
+  };
+
+  const handleImageChange = (e) => { 
+    const file = e.target.files[0]; 
+    if (file) { 
+      setImage(file); 
+      setImagePreview(URL.createObjectURL(file)); 
+    } 
+  };
+
+  const addPackage = () => {
+    if (packageName.trim() && packagePrice) {
+      setPackageItems([...packageItems, { name: packageName.trim(), price: parseFloat(packagePrice) }]);
+      setPackageName('');
+      setPackagePrice('');
+    }
+  };
+
+  const removePackage = (index) => {
+    setPackageItems(packageItems.filter((_, i) => i !== index));
+  };
+
+  const updatePackagesString = () => {
+    return packageItems.map(p => `${p.name}: ${p.price}`).join(', ');
+  };
+
+  const handleCreate = async (e) => { 
+    e.preventDefault(); 
+    const fd = new FormData(); 
+    const packageString = updatePackagesString();
+    Object.entries(form).forEach(([k,v]) => {
+      if (k === 'additional_packages') {
+        fd.append(k, packageString);
+      } else {
+        fd.append(k, v);
+      }
+    });
+    if(image) fd.append('image',image); 
+    try { 
+      await API.post('/conference/create/', fd, { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' } }); 
+      resetForm(); 
+      fetchRooms(); 
+    } catch (err) {} 
+  };
+
+  const handleUpdate = async (e) => { 
+    e.preventDefault(); 
+    const fd = new FormData(); 
+    const packageString = updatePackagesString();
+    Object.entries(form).forEach(([k,v]) => {
+      if (k === 'additional_packages') {
+        fd.append(k, packageString);
+      } else {
+        fd.append(k, v);
+      }
+    });
+    if(image) fd.append('image',image); 
+    try { 
+      await API.put(`/conference/${editingRoom.id}/update/`, fd, { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' } }); 
+      resetForm(); 
+      fetchRooms(); 
+    } catch (err) {} 
+  };
+
+  const handleDelete = async (id) => { 
+    if (!window.confirm('Deactivate this room?')) return; 
+    try { 
+      await API.delete(`/conference/${id}/delete/`, { headers }); 
+      fetchRooms(); 
+    } catch (err) {} 
+  };
+
+  const openEdit = (r) => { 
+    setEditingRoom(r); 
+    setForm({ 
+      name: r.name, 
+      capacity: r.capacity, 
+      price_per_hour: parseFloat(r.price_per_hour)||'', 
+      features: r.features||'', 
+      additional_packages: r.additional_packages||'' 
+    });
+    // Parse existing packages
+    if (r.additional_packages) {
+      const items = r.additional_packages.split(',').map(p => p.trim()).filter(p => p.includes(':'));
+      const parsed = items.map(p => {
+        const [name, price] = p.split(':');
+        return { name: name.trim(), price: parseFloat(price.trim()) || 0 };
+      });
+      setPackageItems(parsed);
+    } else {
+      setPackageItems([]);
+    }
+    setImagePreview(r.image||null); 
+    setImage(null); 
+    setShowForm(true); 
+  };
+
+  const resetForm = () => { 
+    setForm({ name:'', capacity:'', price_per_hour:'', features:'', additional_packages:'' }); 
+    setPackageItems([]);
+    setPackageName('');
+    setPackagePrice('');
+    setImage(null); 
+    setImagePreview(null); 
+    setEditingRoom(null); 
+    setShowForm(false); 
+  };
 
   const totalPages = Math.ceil(rooms.length / perPage);
   const paginatedRooms = rooms.slice((page - 1) * perPage, page * perPage);
@@ -52,20 +169,99 @@ const StaffConference = () => {
         {showForm && (
           <div className="bg-white rounded-2xl shadow-xl border overflow-hidden mb-10">
             <div className="bg-stone-50 px-8 py-5 border-b flex justify-between"><div className="flex items-center gap-3"><div className="bg-amber-100 w-10 h-10 rounded-xl flex items-center justify-center"><Presentation className="w-5 h-5 text-amber-700" /></div><h2 className="text-lg font-bold">{editingRoom?'Edit Room':'Create Room'}</h2></div><button onClick={resetForm} className="text-stone-400 hover:text-red-500"><X className="w-5 h-5" /></button></div>
-            <form onSubmit={editingRoom?handleUpdate:handleCreate} className="p-8">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div className="md:col-span-2 space-y-5">
-                  <div className="grid grid-cols-3 gap-4"><div className="col-span-2"><label className="block text-sm font-medium text-stone-700 mb-2">Name *</label><input type="text" value={form.name} onChange={e=>setForm({...form,name:e.target.value})} className="w-full px-4 py-3 border rounded-xl outline-none" placeholder="Boardroom A" required /></div><div><label className="block text-sm font-medium text-stone-700 mb-2">Capacity *</label><input type="number" value={form.capacity} onChange={e=>setForm({...form,capacity:e.target.value})} className="w-full px-4 py-3 border rounded-xl outline-none" placeholder="10" required /></div></div>
-                  <div><label className="block text-sm font-medium text-stone-700 mb-2">Price/Hour (KES) *</label><input type="number" value={form.price_per_hour} onChange={e=>setForm({...form,price_per_hour:e.target.value})} className="w-full px-4 py-3 border rounded-xl outline-none" placeholder="5000" required /></div>
-                  <div><label className="block text-sm font-medium text-stone-700 mb-2">Features</label><input type="text" value={form.features} onChange={e=>setForm({...form,features:e.target.value})} className="w-full px-4 py-3 border rounded-xl outline-none" placeholder="Projector, Whiteboard" /></div>
-                  <div><label className="block text-sm font-medium text-stone-700 mb-2">Packages</label><input type="text" value={form.additional_packages} onChange={e=>setForm({...form,additional_packages:e.target.value})} className="w-full px-4 py-3 border rounded-xl outline-none" placeholder="Catering: 500, Tech: 1000" /></div>
+            <form onSubmit={editingRoom?handleUpdate:handleCreate} className="p-8 max-h-[70vh] overflow-y-auto">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-stone-700 mb-1.5">Room Name *</label>
+                    <input type="text" value={form.name} onChange={e=>setForm({...form,name:e.target.value})} className="w-full px-4 py-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-amber-500" placeholder="Boardroom A" required />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-stone-700 mb-1.5">Capacity *</label>
+                    <input type="number" value={form.capacity} onChange={e=>setForm({...form,capacity:e.target.value})} className="w-full px-4 py-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-amber-500" placeholder="10" required />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-stone-700 mb-1.5">Price/Hour (KES) *</label>
+                    <input type="number" value={form.price_per_hour} onChange={e=>setForm({...form,price_per_hour:e.target.value})} className="w-full px-4 py-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-amber-500" placeholder="5000" required />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-stone-700 mb-1.5">Features</label>
+                    <input type="text" value={form.features} onChange={e=>setForm({...form,features:e.target.value})} className="w-full px-4 py-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-amber-500" placeholder="Projector, Whiteboard, WiFi" />
+                  </div>
                 </div>
-                <div><label className="block text-sm font-medium text-stone-700 mb-2">Image</label><div className="border-2 border-dashed rounded-2xl p-6 text-center hover:border-amber-400 cursor-pointer h-[220px] flex flex-col items-center justify-center bg-stone-50" onClick={()=>document.getElementById('cimg').click()}>{imagePreview?<img src={imagePreview} className="h-full object-cover rounded-xl" />:<><ImagePlus className="w-10 h-10 text-stone-300 mb-3" /><p className="text-stone-500 text-sm">Upload</p></>}<input id="cimg" type="file" accept="image/*" onChange={handleImageChange} className="hidden" /></div></div>
+                <div>
+                  <label className="block text-sm font-medium text-stone-700 mb-1.5">Image</label>
+                  <div className="border-2 border-dashed rounded-2xl p-4 text-center hover:border-amber-400 cursor-pointer h-[180px] flex flex-col items-center justify-center bg-stone-50" onClick={()=>document.getElementById('cimg').click()}>
+                    {imagePreview?<img src={imagePreview} className="h-full object-cover rounded-xl" />:<><ImagePlus className="w-10 h-10 text-stone-300 mb-2" /><p className="text-stone-500 text-sm">Upload Image</p></>}
+                    <input id="cimg" type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
+                  </div>
+                </div>
               </div>
-              <div className="mt-8 pt-6 border-t flex gap-4"><button type="submit" className="bg-amber-700 text-white px-8 py-3 rounded-xl font-medium hover:bg-amber-600 shadow-lg">{editingRoom?'Update':'Create'}</button><button type="button" onClick={resetForm} className="text-stone-500 text-sm">Cancel</button></div>
+
+              {/* Packages Section */}
+              <div className="mt-6 border-t pt-6">
+                <div className="flex items-center gap-2 mb-3">
+                  <Package className="w-5 h-5 text-amber-600" />
+                  <h3 className="text-lg font-semibold text-stone-800">Additional Packages</h3>
+                  <span className="text-xs text-stone-400 ml-2">(Guests can select these during booking)</span>
+                </div>
+                
+                <div className="flex gap-3 mb-3">
+                  <input
+                    type="text"
+                    value={packageName}
+                    onChange={(e) => setPackageName(e.target.value)}
+                    placeholder="Package name (e.g. Catering)"
+                    className="flex-1 px-4 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-amber-500 text-sm"
+                  />
+                  <input
+                    type="number"
+                    value={packagePrice}
+                    onChange={(e) => setPackagePrice(e.target.value)}
+                    placeholder="Price"
+                    className="w-28 px-4 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-amber-500 text-sm"
+                  />
+                  <button
+                    type="button"
+                    onClick={addPackage}
+                    className="px-4 py-2 bg-amber-700 text-white rounded-xl hover:bg-amber-800 transition flex items-center gap-1 text-sm"
+                  >
+                    <PlusCircle className="w-4 h-4" /> Add
+                  </button>
+                </div>
+
+                {packageItems.length > 0 && (
+                  <div className="bg-stone-50 rounded-xl p-3 space-y-2 max-h-[120px] overflow-y-auto">
+                    {packageItems.map((pkg, index) => (
+                      <div key={index} className="flex items-center justify-between bg-white rounded-lg px-4 py-2 border border-stone-200">
+                        <span className="font-medium text-stone-700">{pkg.name}</span>
+                        <div className="flex items-center gap-4">
+                          <span className="text-emerald-600 font-bold">KES {pkg.price.toLocaleString()}</span>
+                          <button
+                            type="button"
+                            onClick={() => removePackage(index)}
+                            className="text-red-400 hover:text-red-600 transition"
+                          >
+                            <MinusCircle className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {packageItems.length === 0 && (
+                  <p className="text-sm text-stone-400 italic">No packages added yet. Add services guests can select.</p>
+                )}
+              </div>
+
+              <div className="mt-6 pt-4 border-t flex gap-4">
+                <button type="submit" className="bg-amber-700 text-white px-8 py-2.5 rounded-xl font-medium hover:bg-amber-600 shadow-lg transition">{editingRoom?'Update Room':'Create Room'}</button>
+                <button type="button" onClick={resetForm} className="text-stone-500 hover:text-stone-700 transition">Cancel</button>
+              </div>
             </form>
           </div>
         )}
+        {/* Rest of the component remains the same */}
         {loading?<div className="text-center py-20"><div className="animate-spin w-10 h-10 border-4 border-amber-700 border-t-transparent rounded-full mx-auto" /></div>:rooms.length===0?(
           <div className="text-center py-20 bg-white rounded-2xl border"><Presentation className="w-16 h-16 text-stone-200 mx-auto mb-4" /><h3 className="text-xl font-semibold text-stone-600">No Rooms</h3><button onClick={()=>setShowForm(true)} className="bg-amber-700 text-white px-6 py-3 rounded-xl mt-4">Create First Room</button></div>
         ):(

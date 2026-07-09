@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Edit, Trash2, PartyPopper, X, ImagePlus, Users, Grid3X3, List } from 'lucide-react';
+import { Plus, Edit, Trash2, PartyPopper, X, ImagePlus, Users, Grid3X3, List, Package, PlusCircle, MinusCircle } from 'lucide-react';
 import API from '../services/api';
 import StaffNavbar from '../components/StaffNavbar';
 import Footer from '../components/Footer';
@@ -15,7 +15,17 @@ const StaffVenues = () => {
   const [page, setPage] = useState(1);
   const perPage = 6;
 
-  const [form, setForm] = useState({ name: '', venue_type: 'wedding', capacity: '', price_per_day: '', description: '', additional_packages: '' });
+  const [form, setForm] = useState({ 
+    name: '', 
+    venue_type: 'wedding', 
+    capacity: '', 
+    price_per_day: '', 
+    description: '', 
+    additional_packages: '' 
+  });
+  const [packageItems, setPackageItems] = useState([]);
+  const [packageName, setPackageName] = useState('');
+  const [packagePrice, setPackagePrice] = useState('');
   const [image, setImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
 
@@ -23,13 +33,122 @@ const StaffVenues = () => {
   const headers = { Authorization: `Bearer ${token}` };
 
   useEffect(() => { fetchVenues(); }, []);
-  const fetchVenues = async () => { setLoading(true); try { const res = await API.get('/venues/', { headers }); setVenues(Array.isArray(res.data) ? res.data : []); } catch (err) {} setLoading(false); };
-  const handleImageChange = (e) => { const file = e.target.files[0]; if (file) { setImage(file); setImagePreview(URL.createObjectURL(file)); } };
-  const handleCreate = async (e) => { e.preventDefault(); const fd = new FormData(); Object.entries(form).forEach(([k,v]) => fd.append(k,v)); if(image) fd.append('image',image); try { await API.post('/venues/create/', fd, { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' } }); resetForm(); fetchVenues(); } catch (err) {} };
-  const handleUpdate = async (e) => { e.preventDefault(); const fd = new FormData(); Object.entries(form).forEach(([k,v]) => fd.append(k,v)); if(image) fd.append('image',image); try { await API.put(`/venues/${editingVenue.id}/update/`, fd, { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' } }); resetForm(); fetchVenues(); } catch (err) {} };
-  const handleDelete = async (id) => { if (!window.confirm('Deactivate?')) return; try { await API.delete(`/venues/${id}/delete/`, { headers }); fetchVenues(); } catch (err) {} };
-  const openEdit = (v) => { setEditingVenue(v); setForm({ name: v.name, venue_type: v.venue_type, capacity: v.capacity, price_per_day: parseFloat(v.price_per_day)||'', description: v.description||'', additional_packages: v.additional_packages||'' }); setImagePreview(v.image||null); setImage(null); setShowForm(true); };
-  const resetForm = () => { setForm({ name:'', venue_type:'wedding', capacity:'', price_per_day:'', description:'', additional_packages:'' }); setImage(null); setImagePreview(null); setEditingVenue(null); setShowForm(false); };
+
+  const fetchVenues = async () => { 
+    setLoading(true); 
+    try { 
+      const res = await API.get('/venues/', { headers }); 
+      setVenues(Array.isArray(res.data) ? res.data : []); 
+    } catch (err) {} 
+    setLoading(false); 
+  };
+
+  const handleImageChange = (e) => { 
+    const file = e.target.files[0]; 
+    if (file) { 
+      setImage(file); 
+      setImagePreview(URL.createObjectURL(file)); 
+    } 
+  };
+
+  const addPackage = () => {
+    if (packageName.trim() && packagePrice) {
+      setPackageItems([...packageItems, { name: packageName.trim(), price: parseFloat(packagePrice) }]);
+      setPackageName('');
+      setPackagePrice('');
+    }
+  };
+
+  const removePackage = (index) => {
+    setPackageItems(packageItems.filter((_, i) => i !== index));
+  };
+
+  const updatePackagesString = () => {
+    return packageItems.map(p => `${p.name}: ${p.price}`).join(', ');
+  };
+
+  const handleCreate = async (e) => { 
+    e.preventDefault(); 
+    const fd = new FormData(); 
+    const packageString = updatePackagesString();
+    Object.entries(form).forEach(([k,v]) => {
+      if (k === 'additional_packages') {
+        fd.append(k, packageString);
+      } else {
+        fd.append(k, v);
+      }
+    });
+    if(image) fd.append('image',image); 
+    try { 
+      await API.post('/venues/create/', fd, { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' } }); 
+      resetForm(); 
+      fetchVenues(); 
+    } catch (err) {} 
+  };
+
+  const handleUpdate = async (e) => { 
+    e.preventDefault(); 
+    const fd = new FormData(); 
+    const packageString = updatePackagesString();
+    Object.entries(form).forEach(([k,v]) => {
+      if (k === 'additional_packages') {
+        fd.append(k, packageString);
+      } else {
+        fd.append(k, v);
+      }
+    });
+    if(image) fd.append('image',image); 
+    try { 
+      await API.put(`/venues/${editingVenue.id}/update/`, fd, { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' } }); 
+      resetForm(); 
+      fetchVenues(); 
+    } catch (err) {} 
+  };
+
+  const handleDelete = async (id) => { 
+    if (!window.confirm('Deactivate this venue?')) return; 
+    try { 
+      await API.delete(`/venues/${id}/delete/`, { headers }); 
+      fetchVenues(); 
+    } catch (err) {} 
+  };
+
+  const openEdit = (v) => { 
+    setEditingVenue(v); 
+    setForm({ 
+      name: v.name, 
+      venue_type: v.venue_type, 
+      capacity: v.capacity, 
+      price_per_day: parseFloat(v.price_per_day)||'', 
+      description: v.description||'', 
+      additional_packages: v.additional_packages||'' 
+    });
+    // Parse existing packages
+    if (v.additional_packages) {
+      const items = v.additional_packages.split(',').map(p => p.trim()).filter(p => p.includes(':'));
+      const parsed = items.map(p => {
+        const [name, price] = p.split(':');
+        return { name: name.trim(), price: parseFloat(price.trim()) || 0 };
+      });
+      setPackageItems(parsed);
+    } else {
+      setPackageItems([]);
+    }
+    setImagePreview(v.image||null); 
+    setImage(null); 
+    setShowForm(true); 
+  };
+
+  const resetForm = () => { 
+    setForm({ name:'', venue_type:'wedding', capacity:'', price_per_day:'', description:'', additional_packages:'' }); 
+    setPackageItems([]);
+    setPackageName('');
+    setPackagePrice('');
+    setImage(null); 
+    setImagePreview(null); 
+    setEditingVenue(null); 
+    setShowForm(false); 
+  };
 
   const totalPages = Math.ceil(venues.length / perPage);
   const paginatedVenues = venues.slice((page - 1) * perPage, page * perPage);
@@ -52,20 +171,107 @@ const StaffVenues = () => {
         {showForm && (
           <div className="bg-white rounded-2xl shadow-xl border overflow-hidden mb-10">
             <div className="bg-stone-50 px-8 py-5 border-b flex justify-between"><div className="flex items-center gap-3"><div className="bg-amber-100 w-10 h-10 rounded-xl flex items-center justify-center"><PartyPopper className="w-5 h-5 text-amber-700" /></div><h2 className="text-lg font-bold">{editingVenue?'Edit Venue':'Create Venue'}</h2></div><button onClick={resetForm} className="text-stone-400 hover:text-red-500"><X className="w-5 h-5" /></button></div>
-            <form onSubmit={editingVenue?handleUpdate:handleCreate} className="p-8">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div className="md:col-span-2 space-y-5">
-                  <div className="grid grid-cols-3 gap-4"><div className="col-span-2"><label className="block text-sm font-medium text-stone-700 mb-2">Name *</label><input type="text" value={form.name} onChange={e=>setForm({...form,name:e.target.value})} className="w-full px-4 py-3 border rounded-xl outline-none" placeholder="Grand Ballroom" required /></div><div><label className="block text-sm font-medium text-stone-700 mb-2">Type *</label><select value={form.venue_type} onChange={e=>setForm({...form,venue_type:e.target.value})} className="w-full px-4 py-3 border rounded-xl outline-none bg-white"><option value="wedding">Wedding</option><option value="birthday">Birthday</option><option value="other">Other</option></select></div></div>
-                  <div className="grid grid-cols-2 gap-4"><div><label className="block text-sm font-medium text-stone-700 mb-2">Capacity *</label><input type="number" value={form.capacity} onChange={e=>setForm({...form,capacity:e.target.value})} className="w-full px-4 py-3 border rounded-xl outline-none" placeholder="200" required /></div><div><label className="block text-sm font-medium text-stone-700 mb-2">Price/Day (KES) *</label><input type="number" value={form.price_per_day} onChange={e=>setForm({...form,price_per_day:e.target.value})} className="w-full px-4 py-3 border rounded-xl outline-none" placeholder="50000" required /></div></div>
-                  <div><label className="block text-sm font-medium text-stone-700 mb-2">Description</label><input type="text" value={form.description} onChange={e=>setForm({...form,description:e.target.value})} className="w-full px-4 py-3 border rounded-xl outline-none" placeholder="Elegant ballroom" /></div>
-                  <div><label className="block text-sm font-medium text-stone-700 mb-2">Packages</label><input type="text" value={form.additional_packages} onChange={e=>setForm({...form,additional_packages:e.target.value})} className="w-full px-4 py-3 border rounded-xl outline-none" placeholder="Wedding Decor: 5000 | Birthday: 2000" /></div>
+            <form onSubmit={editingVenue?handleUpdate:handleCreate} className="p-8 max-h-[70vh] overflow-y-auto">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-stone-700 mb-1.5">Venue Name *</label>
+                    <input type="text" value={form.name} onChange={e=>setForm({...form,name:e.target.value})} className="w-full px-4 py-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-amber-500" placeholder="Grand Ballroom" required />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-stone-700 mb-1.5">Venue Type *</label>
+                    <select value={form.venue_type} onChange={e=>setForm({...form,venue_type:e.target.value})} className="w-full px-4 py-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-amber-500 bg-white">
+                      <option value="wedding">Wedding</option>
+                      <option value="birthday">Birthday</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-stone-700 mb-1.5">Capacity *</label>
+                    <input type="number" value={form.capacity} onChange={e=>setForm({...form,capacity:e.target.value})} className="w-full px-4 py-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-amber-500" placeholder="200" required />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-stone-700 mb-1.5">Price/Day (KES) *</label>
+                    <input type="number" value={form.price_per_day} onChange={e=>setForm({...form,price_per_day:e.target.value})} className="w-full px-4 py-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-amber-500" placeholder="50000" required />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-stone-700 mb-1.5">Description</label>
+                    <input type="text" value={form.description} onChange={e=>setForm({...form,description:e.target.value})} className="w-full px-4 py-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-amber-500" placeholder="Elegant ballroom with chandeliers" />
+                  </div>
                 </div>
-                <div><label className="block text-sm font-medium text-stone-700 mb-2">Image</label><div className="border-2 border-dashed rounded-2xl p-6 text-center hover:border-amber-400 cursor-pointer h-[220px] flex flex-col items-center justify-center bg-stone-50" onClick={()=>document.getElementById('vimg').click()}>{imagePreview?<img src={imagePreview} className="h-full object-cover rounded-xl" />:<><ImagePlus className="w-10 h-10 text-stone-300 mb-3" /><p className="text-stone-500 text-sm">Upload</p></>}<input id="vimg" type="file" accept="image/*" onChange={handleImageChange} className="hidden" /></div></div>
+                <div>
+                  <label className="block text-sm font-medium text-stone-700 mb-1.5">Image</label>
+                  <div className="border-2 border-dashed rounded-2xl p-4 text-center hover:border-amber-400 cursor-pointer h-[180px] flex flex-col items-center justify-center bg-stone-50" onClick={()=>document.getElementById('vimg').click()}>
+                    {imagePreview?<img src={imagePreview} className="h-full object-cover rounded-xl" />:<><ImagePlus className="w-10 h-10 text-stone-300 mb-2" /><p className="text-stone-500 text-sm">Upload Image</p></>}
+                    <input id="vimg" type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
+                  </div>
+                </div>
               </div>
-              <div className="mt-8 pt-6 border-t flex gap-4"><button type="submit" className="bg-amber-700 text-white px-8 py-3 rounded-xl font-medium hover:bg-amber-600 shadow-lg">{editingVenue?'Update':'Create'}</button><button type="button" onClick={resetForm} className="text-stone-500 text-sm">Cancel</button></div>
+
+              {/* Packages Section */}
+              <div className="mt-6 border-t pt-6">
+                <div className="flex items-center gap-2 mb-3">
+                  <Package className="w-5 h-5 text-amber-600" />
+                  <h3 className="text-lg font-semibold text-stone-800">Additional Packages</h3>
+                  <span className="text-xs text-stone-400 ml-2">(Guests can select these during booking)</span>
+                </div>
+                
+                <div className="flex gap-3 mb-3">
+                  <input
+                    type="text"
+                    value={packageName}
+                    onChange={(e) => setPackageName(e.target.value)}
+                    placeholder="Package name (e.g. Decor, Catering)"
+                    className="flex-1 px-4 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-amber-500 text-sm"
+                  />
+                  <input
+                    type="number"
+                    value={packagePrice}
+                    onChange={(e) => setPackagePrice(e.target.value)}
+                    placeholder="Price"
+                    className="w-28 px-4 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-amber-500 text-sm"
+                  />
+                  <button
+                    type="button"
+                    onClick={addPackage}
+                    className="px-4 py-2 bg-amber-700 text-white rounded-xl hover:bg-amber-800 transition flex items-center gap-1 text-sm"
+                  >
+                    <PlusCircle className="w-4 h-4" /> Add
+                  </button>
+                </div>
+
+                {packageItems.length > 0 && (
+                  <div className="bg-stone-50 rounded-xl p-3 space-y-2 max-h-[120px] overflow-y-auto">
+                    {packageItems.map((pkg, index) => (
+                      <div key={index} className="flex items-center justify-between bg-white rounded-lg px-4 py-2 border border-stone-200">
+                        <span className="font-medium text-stone-700">{pkg.name}</span>
+                        <div className="flex items-center gap-4">
+                          <span className="text-emerald-600 font-bold">KES {pkg.price.toLocaleString()}</span>
+                          <button
+                            type="button"
+                            onClick={() => removePackage(index)}
+                            className="text-red-400 hover:text-red-600 transition"
+                          >
+                            <MinusCircle className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {packageItems.length === 0 && (
+                  <p className="text-sm text-stone-400 italic">No packages added yet. Add services guests can select.</p>
+                )}
+              </div>
+
+              <div className="mt-6 pt-4 border-t flex gap-4">
+                <button type="submit" className="bg-amber-700 text-white px-8 py-2.5 rounded-xl font-medium hover:bg-amber-600 shadow-lg transition">{editingVenue?'Update Venue':'Create Venue'}</button>
+                <button type="button" onClick={resetForm} className="text-stone-500 hover:text-stone-700 transition">Cancel</button>
+              </div>
             </form>
           </div>
         )}
+        {/* Rest of the component remains the same */}
         {loading?<div className="text-center py-20"><div className="animate-spin w-10 h-10 border-4 border-amber-700 border-t-transparent rounded-full mx-auto" /></div>:venues.length===0?(
           <div className="text-center py-20 bg-white rounded-2xl border"><PartyPopper className="w-16 h-16 text-stone-200 mx-auto mb-4" /><h3 className="text-xl font-semibold text-stone-600">No Venues</h3><button onClick={()=>setShowForm(true)} className="bg-amber-700 text-white px-6 py-3 rounded-xl mt-4">Create First Venue</button></div>
         ):(

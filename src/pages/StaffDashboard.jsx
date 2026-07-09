@@ -46,24 +46,6 @@ const StaffDashboard = () => {
     return () => clearInterval(interval);
   }, [fetchStats]);
 
-  const StatCard = ({ icon: Icon, title, value, subtitle, color, bgColor }) => (
-    <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-6 hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
-      <div className="flex items-center justify-between mb-4">
-        <div className={`${bgColor} w-12 h-12 rounded-xl flex items-center justify-center`}>
-          <Icon className={`w-6 h-6 ${color}`} />
-        </div>
-        {loading && <div className="animate-pulse w-16 h-4 bg-stone-200 rounded"></div>}
-      </div>
-      <p className="text-stone-500 text-sm font-medium mb-1">{title}</p>
-      {loading ? (
-        <div className="animate-pulse w-24 h-8 bg-stone-200 rounded"></div>
-      ) : (
-        <p className="text-2xl font-bold text-stone-800">{value}</p>
-      )}
-      {subtitle && <p className="text-xs text-stone-400 mt-1">{subtitle}</p>}
-    </div>
-  );
-
   return (
     <div className="min-h-screen bg-stone-50 font-sans">
       <StaffNavbar />
@@ -98,69 +80,69 @@ const StaffDashboard = () => {
 
       <div className="max-w-7xl mx-auto px-8 -mt-8 relative z-10 pb-16">
         
-        {/* Revenue Overview Cards */}
+        {/* Revenue Overview Cards - Blending with Brown Theme */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
-          <div className="bg-gradient-to-br from-emerald-50 to-emerald-100/50 rounded-2xl border border-emerald-200/50 shadow-sm p-6 hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
+          <div className="bg-gradient-to-br from-amber-50/80 to-amber-100/40 rounded-2xl border border-amber-200/40 shadow-sm p-6 hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
             <div className="flex items-center justify-between mb-3">
-              <div className="bg-emerald-600/20 w-12 h-12 rounded-xl flex items-center justify-center">
-                <TrendingUp className="w-6 h-6 text-emerald-700" />
+              <div className="bg-amber-600/15 w-12 h-12 rounded-xl flex items-center justify-center">
+                <TrendingUp className="w-6 h-6 text-amber-700" />
               </div>
-              <span className="text-xs font-medium text-emerald-600 bg-emerald-200/50 px-2.5 py-1 rounded-full">Gross</span>
+              <span className="text-xs font-medium text-amber-700 bg-amber-200/50 px-2.5 py-1 rounded-full">Gross</span>
             </div>
-            <p className="text-stone-500 text-sm font-medium mb-1">Gross Revenue</p>
+            <p className="text-stone-600 text-sm font-medium mb-1">Gross Revenue</p>
             {loading ? (
-              <div className="animate-pulse w-32 h-8 bg-emerald-200/50 rounded"></div>
+              <div className="animate-pulse w-32 h-8 bg-amber-200/30 rounded"></div>
             ) : (
               <p className="text-2xl font-bold text-stone-800">KES {stats.total_gross_revenue.toLocaleString()}</p>
             )}
           </div>
           
-          <div className="bg-gradient-to-br from-red-50 to-red-100/50 rounded-2xl border border-red-200/50 shadow-sm p-6 hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
+          <div className="bg-gradient-to-br from-rose-50/80 to-rose-100/40 rounded-2xl border border-rose-200/40 shadow-sm p-6 hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
             <div className="flex items-center justify-between mb-3">
-              <div className="bg-red-600/20 w-12 h-12 rounded-xl flex items-center justify-center">
-                <TrendingDown className="w-6 h-6 text-red-700" />
+              <div className="bg-rose-600/15 w-12 h-12 rounded-xl flex items-center justify-center">
+                <TrendingDown className="w-6 h-6 text-rose-700" />
               </div>
-              <span className="text-xs font-medium text-red-600 bg-red-200/50 px-2.5 py-1 rounded-full">Refunds</span>
+              <span className="text-xs font-medium text-rose-700 bg-rose-200/50 px-2.5 py-1 rounded-full">Refunds</span>
             </div>
-            <p className="text-stone-500 text-sm font-medium mb-1">Total Refunds</p>
+            <p className="text-stone-600 text-sm font-medium mb-1">Total Refunds</p>
             {loading ? (
-              <div className="animate-pulse w-32 h-8 bg-red-200/50 rounded"></div>
+              <div className="animate-pulse w-32 h-8 bg-rose-200/30 rounded"></div>
             ) : (
-              <p className="text-2xl font-bold text-red-600">KES {stats.total_refunds.toLocaleString()}</p>
+              <p className="text-2xl font-bold text-rose-700">KES {stats.total_refunds.toLocaleString()}</p>
             )}
           </div>
           
-          <div className="bg-gradient-to-br from-amber-50 to-amber-100/50 rounded-2xl border border-amber-200/50 shadow-sm p-6 hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
+          <div className="bg-gradient-to-br from-amber-100/60 to-amber-200/30 rounded-2xl border border-amber-300/40 shadow-sm p-6 hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
             <div className="flex items-center justify-between mb-3">
-              <div className="bg-amber-600/20 w-12 h-12 rounded-xl flex items-center justify-center">
-                <Wallet className="w-6 h-6 text-amber-700" />
+              <div className="bg-amber-700/15 w-12 h-12 rounded-xl flex items-center justify-center">
+                <Wallet className="w-6 h-6 text-amber-800" />
               </div>
-              <span className="text-xs font-medium text-amber-600 bg-amber-200/50 px-2.5 py-1 rounded-full">Net</span>
+              <span className="text-xs font-medium text-amber-800 bg-amber-300/50 px-2.5 py-1 rounded-full">Net</span>
             </div>
-            <p className="text-stone-500 text-sm font-medium mb-1">Net Revenue</p>
+            <p className="text-stone-600 text-sm font-medium mb-1">Net Revenue</p>
             {loading ? (
-              <div className="animate-pulse w-32 h-8 bg-amber-200/50 rounded"></div>
+              <div className="animate-pulse w-32 h-8 bg-amber-200/30 rounded"></div>
             ) : (
-              <p className="text-2xl font-bold text-amber-700">KES {stats.total_net_revenue.toLocaleString()}</p>
+              <p className="text-2xl font-bold text-amber-800">KES {stats.total_net_revenue.toLocaleString()}</p>
             )}
           </div>
           
-          <div className="bg-gradient-to-br from-purple-50 to-purple-100/50 rounded-2xl border border-purple-200/50 shadow-sm p-6 hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
+          <div className="bg-gradient-to-br from-stone-100/80 to-stone-200/40 rounded-2xl border border-stone-200/40 shadow-sm p-6 hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
             <div className="flex items-center justify-between mb-3">
-              <div className="bg-purple-600/20 w-12 h-12 rounded-xl flex items-center justify-center">
-                <Bell className="w-6 h-6 text-purple-700" />
+              <div className="bg-stone-600/15 w-12 h-12 rounded-xl flex items-center justify-center">
+                <Bell className="w-6 h-6 text-stone-700" />
               </div>
-              <span className="text-xs font-medium text-purple-600 bg-purple-200/50 px-2.5 py-1 rounded-full">Pending</span>
+              <span className="text-xs font-medium text-stone-700 bg-stone-200/50 px-2.5 py-1 rounded-full">Pending</span>
             </div>
-            <p className="text-stone-500 text-sm font-medium mb-1">Pending Actions</p>
+            <p className="text-stone-600 text-sm font-medium mb-1">Pending Actions</p>
             {loading ? (
-              <div className="animate-pulse w-32 h-8 bg-purple-200/50 rounded"></div>
+              <div className="animate-pulse w-32 h-8 bg-stone-200/30 rounded"></div>
             ) : (
               <div>
-                <p className="text-2xl font-bold text-purple-700">
+                <p className="text-2xl font-bold text-stone-800">
                   {stats.pending_cancellations + stats.pending_refunds}
                 </p>
-                <p className="text-xs text-stone-400 mt-0.5">
+                <p className="text-xs text-stone-500 mt-0.5">
                   {stats.pending_cancellations} cancellations · {stats.pending_refunds} refunds
                 </p>
               </div>

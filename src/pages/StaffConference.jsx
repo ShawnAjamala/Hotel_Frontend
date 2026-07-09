@@ -121,7 +121,6 @@ const StaffConference = () => {
       features: r.features||'', 
       additional_packages: r.additional_packages||'' 
     });
-    // Parse existing packages
     if (r.additional_packages) {
       const items = r.additional_packages.split(',').map(p => p.trim()).filter(p => p.includes(':'));
       const parsed = items.map(p => {
@@ -168,81 +167,101 @@ const StaffConference = () => {
       <div className="max-w-7xl mx-auto px-8 -mt-6 z-10 pb-16">
         {showForm && (
           <div className="bg-white rounded-2xl shadow-xl border overflow-hidden mb-10">
-            <div className="bg-stone-50 px-8 py-5 border-b flex justify-between"><div className="flex items-center gap-3"><div className="bg-amber-100 w-10 h-10 rounded-xl flex items-center justify-center"><Presentation className="w-5 h-5 text-amber-700" /></div><h2 className="text-lg font-bold">{editingRoom?'Edit Room':'Create Room'}</h2></div><button onClick={resetForm} className="text-stone-400 hover:text-red-500"><X className="w-5 h-5" /></button></div>
-            <form onSubmit={editingRoom?handleUpdate:handleCreate} className="p-8 max-h-[70vh] overflow-y-auto">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4">
+            <div className="bg-stone-50 px-6 py-4 border-b flex justify-between">
+              <div className="flex items-center gap-3">
+                <div className="bg-amber-100 w-9 h-9 rounded-xl flex items-center justify-center">
+                  <Presentation className="w-4 h-4 text-amber-700" />
+                </div>
+                <h2 className="text-lg font-bold">{editingRoom?'Edit Room':'Create Room'}</h2>
+              </div>
+              <button onClick={resetForm} className="text-stone-400 hover:text-red-500"><X className="w-5 h-5" /></button>
+            </div>
+            <form onSubmit={editingRoom?handleUpdate:handleCreate} className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Column 1 */}
+                <div className="space-y-3">
                   <div>
-                    <label className="block text-sm font-medium text-stone-700 mb-1.5">Room Name *</label>
-                    <input type="text" value={form.name} onChange={e=>setForm({...form,name:e.target.value})} className="w-full px-4 py-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-amber-500" placeholder="Boardroom A" required />
+                    <label className="block text-sm font-medium text-stone-700 mb-1">Room Name *</label>
+                    <input type="text" value={form.name} onChange={e=>setForm({...form,name:e.target.value})} className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-amber-500 text-sm" placeholder="Boardroom A" required />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-stone-700 mb-1.5">Capacity *</label>
-                    <input type="number" value={form.capacity} onChange={e=>setForm({...form,capacity:e.target.value})} className="w-full px-4 py-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-amber-500" placeholder="10" required />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-stone-700 mb-1.5">Price/Hour (KES) *</label>
-                    <input type="number" value={form.price_per_hour} onChange={e=>setForm({...form,price_per_hour:e.target.value})} className="w-full px-4 py-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-amber-500" placeholder="5000" required />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-stone-700 mb-1.5">Features</label>
-                    <input type="text" value={form.features} onChange={e=>setForm({...form,features:e.target.value})} className="w-full px-4 py-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-amber-500" placeholder="Projector, Whiteboard, WiFi" />
+                    <label className="block text-sm font-medium text-stone-700 mb-1">Capacity *</label>
+                    <input type="number" value={form.capacity} onChange={e=>setForm({...form,capacity:e.target.value})} className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-amber-500 text-sm" placeholder="10" required />
                   </div>
                 </div>
+                {/* Column 2 */}
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-sm font-medium text-stone-700 mb-1">Price/Hour (KES) *</label>
+                    <input type="number" value={form.price_per_hour} onChange={e=>setForm({...form,price_per_hour:e.target.value})} className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-amber-500 text-sm" placeholder="5000" required />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-stone-700 mb-1">Features</label>
+                    <input type="text" value={form.features} onChange={e=>setForm({...form,features:e.target.value})} className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-amber-500 text-sm" placeholder="Projector, Whiteboard, WiFi" />
+                  </div>
+                </div>
+                {/* Column 3 - Image */}
                 <div>
-                  <label className="block text-sm font-medium text-stone-700 mb-1.5">Image</label>
-                  <div className="border-2 border-dashed rounded-2xl p-4 text-center hover:border-amber-400 cursor-pointer h-[180px] flex flex-col items-center justify-center bg-stone-50" onClick={()=>document.getElementById('cimg').click()}>
-                    {imagePreview?<img src={imagePreview} className="h-full object-cover rounded-xl" />:<><ImagePlus className="w-10 h-10 text-stone-300 mb-2" /><p className="text-stone-500 text-sm">Upload Image</p></>}
+                  <label className="block text-sm font-medium text-stone-700 mb-1">Image</label>
+                  <div className="border-2 border-dashed rounded-xl p-3 text-center hover:border-amber-400 cursor-pointer h-[120px] flex flex-col items-center justify-center bg-stone-50" onClick={()=>document.getElementById('cimg').click()}>
+                    {imagePreview ? (
+                      <img src={imagePreview} className="h-full object-cover rounded-lg" />
+                    ) : (
+                      <>
+                        <ImagePlus className="w-8 h-8 text-stone-300 mb-1" />
+                        <p className="text-stone-500 text-xs">Upload</p>
+                      </>
+                    )}
                     <input id="cimg" type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
                   </div>
                 </div>
               </div>
 
-              {/* Packages Section */}
-              <div className="mt-6 border-t pt-6">
-                <div className="flex items-center gap-2 mb-3">
-                  <Package className="w-5 h-5 text-amber-600" />
-                  <h3 className="text-lg font-semibold text-stone-800">Additional Packages</h3>
-                  <span className="text-xs text-stone-400 ml-2">(Guests can select these during booking)</span>
+              {/* Packages Section - Compact */}
+              <div className="mt-4 pt-4 border-t">
+                <div className="flex items-center gap-2 mb-2">
+                  <Package className="w-4 h-4 text-amber-600" />
+                  <h3 className="text-sm font-semibold text-stone-800">Packages</h3>
+                  <span className="text-xs text-stone-400">(Guests can select these)</span>
                 </div>
                 
-                <div className="flex gap-3 mb-3">
+                <div className="flex gap-2 mb-2">
                   <input
                     type="text"
                     value={packageName}
                     onChange={(e) => setPackageName(e.target.value)}
-                    placeholder="Package name (e.g. Catering)"
-                    className="flex-1 px-4 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-amber-500 text-sm"
+                    placeholder="Package name"
+                    className="flex-1 px-3 py-1.5 border rounded-xl outline-none focus:ring-2 focus:ring-amber-500 text-sm"
                   />
                   <input
                     type="number"
                     value={packagePrice}
                     onChange={(e) => setPackagePrice(e.target.value)}
                     placeholder="Price"
-                    className="w-28 px-4 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-amber-500 text-sm"
+                    className="w-24 px-3 py-1.5 border rounded-xl outline-none focus:ring-2 focus:ring-amber-500 text-sm"
                   />
                   <button
                     type="button"
                     onClick={addPackage}
-                    className="px-4 py-2 bg-amber-700 text-white rounded-xl hover:bg-amber-800 transition flex items-center gap-1 text-sm"
+                    className="px-3 py-1.5 bg-amber-700 text-white rounded-xl hover:bg-amber-800 transition flex items-center gap-1 text-xs"
                   >
-                    <PlusCircle className="w-4 h-4" /> Add
+                    <PlusCircle className="w-3 h-3" /> Add
                   </button>
                 </div>
 
                 {packageItems.length > 0 && (
-                  <div className="bg-stone-50 rounded-xl p-3 space-y-2 max-h-[120px] overflow-y-auto">
+                  <div className="bg-stone-50 rounded-xl p-2 space-y-1 max-h-[80px] overflow-y-auto">
                     {packageItems.map((pkg, index) => (
-                      <div key={index} className="flex items-center justify-between bg-white rounded-lg px-4 py-2 border border-stone-200">
-                        <span className="font-medium text-stone-700">{pkg.name}</span>
-                        <div className="flex items-center gap-4">
-                          <span className="text-emerald-600 font-bold">KES {pkg.price.toLocaleString()}</span>
+                      <div key={index} className="flex items-center justify-between bg-white rounded-lg px-3 py-1.5 border border-stone-200">
+                        <span className="text-sm font-medium text-stone-700">{pkg.name}</span>
+                        <div className="flex items-center gap-3">
+                          <span className="text-xs font-bold text-emerald-600">KES {pkg.price.toLocaleString()}</span>
                           <button
                             type="button"
                             onClick={() => removePackage(index)}
                             className="text-red-400 hover:text-red-600 transition"
                           >
-                            <MinusCircle className="w-4 h-4" />
+                            <MinusCircle className="w-3 h-3" />
                           </button>
                         </div>
                       </div>
@@ -250,13 +269,13 @@ const StaffConference = () => {
                   </div>
                 )}
                 {packageItems.length === 0 && (
-                  <p className="text-sm text-stone-400 italic">No packages added yet. Add services guests can select.</p>
+                  <p className="text-xs text-stone-400 italic">No packages added</p>
                 )}
               </div>
 
-              <div className="mt-6 pt-4 border-t flex gap-4">
-                <button type="submit" className="bg-amber-700 text-white px-8 py-2.5 rounded-xl font-medium hover:bg-amber-600 shadow-lg transition">{editingRoom?'Update Room':'Create Room'}</button>
-                <button type="button" onClick={resetForm} className="text-stone-500 hover:text-stone-700 transition">Cancel</button>
+              <div className="mt-4 pt-3 border-t flex gap-3">
+                <button type="submit" className="bg-amber-700 text-white px-6 py-2 rounded-xl font-medium hover:bg-amber-600 shadow-lg transition text-sm">{editingRoom?'Update':'Create'}</button>
+                <button type="button" onClick={resetForm} className="text-stone-500 hover:text-stone-700 transition text-sm">Cancel</button>
               </div>
             </form>
           </div>

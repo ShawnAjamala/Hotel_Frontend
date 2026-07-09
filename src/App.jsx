@@ -8,6 +8,7 @@ import ChangePassword from './pages/ChangePassword';
 import AdminUsers from "./pages/AdminUsers";
 import AdminApprovals from "./pages/AdminApprovals";
 import AdminBookings from "./pages/AdminBookings";
+import AdminManageStaffPasswords from './pages/AdminManageStaffPasswords';
 import AdminCreateStaff from "./pages/AdminCreateStaff";
 import StaffRooms from "./pages/StaffRooms";
 import StaffTables from "./pages/StaffTables";
@@ -46,6 +47,7 @@ function App() {
         <Route path="/admin/staff/pending" element={<AdminApprovals />} />
         <Route path="/admin/bookings" element={<AdminBookings />} />
         <Route path="/admin/staff/create" element={<AdminCreateStaff />} />
+        <Route path="/admin/staff/passwords" element={<AdminManageStaffPasswords />} />
 
         {/* Staff Management */}
         <Route path="/change-password" element={<ChangePassword />} />

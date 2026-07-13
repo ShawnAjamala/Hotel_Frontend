@@ -26,25 +26,23 @@ const StaffDashboard = () => {
   });
   const [loading, setLoading] = useState(true);
 
-  const fetchStats = useCallback(async () => {
-    try {
-      const token = localStorage.getItem('token');
-      const headers = { Authorization: `Bearer ${token}` };
-      
-      const analyticsRes = await API.get('/staff/analytics/', { headers });
-      setStats(analyticsRes.data);
-    } catch (error) {
-      console.error('Error fetching stats:', error);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
   useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const headers = { Authorization: `Bearer ${token}` };
+        
+        const analyticsRes = await API.get('/staff/analytics/', { headers });
+        setStats(analyticsRes.data);
+      } catch (error) {
+        console.error('Error fetching stats:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
     fetchStats();
-    const interval = setInterval(fetchStats, 60000);
-    return () => clearInterval(interval);
-  }, [fetchStats]);
+  }, []);
 
   return (
     <div className="min-h-screen bg-stone-50 font-sans">
@@ -68,14 +66,6 @@ const StaffDashboard = () => {
               <h1 className="text-4xl font-bold tracking-tight">Welcome back, {user.username}</h1>
               <p className="text-amber-100/80 mt-2 text-lg">Here's your hotel performance overview</p>
             </div>
-            <button
-              onClick={fetchStats}
-              disabled={loading}
-              className="flex items-center gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white px-5 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 border border-white/10 hover:border-white/20"
-            >
-              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-              Refresh
-            </button>
           </div>
         </div>
       </section>
@@ -84,7 +74,6 @@ const StaffDashboard = () => {
         
         {/* Revenue Overview Cards - 4 Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
-          {/* Gross Revenue */}
           <div className="group bg-gradient-to-br from-amber-50/90 to-amber-100/50 rounded-2xl border border-amber-200/50 shadow-sm p-6 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
             <div className="flex items-center justify-between mb-3">
               <div className="bg-amber-600/15 w-12 h-12 rounded-xl flex items-center justify-center group-hover:bg-amber-600/25 transition">
@@ -100,7 +89,6 @@ const StaffDashboard = () => {
             )}
           </div>
           
-          {/* Total Refunds */}
           <div className="group bg-gradient-to-br from-rose-50/90 to-rose-100/50 rounded-2xl border border-rose-200/50 shadow-sm p-6 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
             <div className="flex items-center justify-between mb-3">
               <div className="bg-rose-600/15 w-12 h-12 rounded-xl flex items-center justify-center group-hover:bg-rose-600/25 transition">
@@ -116,7 +104,6 @@ const StaffDashboard = () => {
             )}
           </div>
           
-          {/* Net Revenue */}
           <div className="group bg-gradient-to-br from-amber-100/70 to-amber-200/40 rounded-2xl border border-amber-300/40 shadow-sm p-6 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
             <div className="flex items-center justify-between mb-3">
               <div className="bg-amber-700/15 w-12 h-12 rounded-xl flex items-center justify-center group-hover:bg-amber-700/25 transition">
@@ -132,7 +119,6 @@ const StaffDashboard = () => {
             )}
           </div>
           
-          {/* Pending Actions */}
           <div className="group bg-gradient-to-br from-stone-100/90 to-stone-200/50 rounded-2xl border border-stone-200/50 shadow-sm p-6 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
             <div className="flex items-center justify-between mb-3">
               <div className="bg-stone-600/15 w-12 h-12 rounded-xl flex items-center justify-center group-hover:bg-stone-600/25 transition">
@@ -168,121 +154,34 @@ const StaffDashboard = () => {
         </h2>
         
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-10">
-          {/* Rooms Card */}
-          <div className="group bg-gradient-to-br from-blue-50/90 to-blue-100/50 rounded-2xl border border-blue-200/50 shadow-sm p-5 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-            <div className="flex items-center justify-between mb-3">
-              <div className="bg-blue-600/15 w-10 h-10 rounded-xl flex items-center justify-center group-hover:bg-blue-600/25 transition">
-                <BedDouble className="w-5 h-5 text-blue-700" />
+          {[
+            { icon: BedDouble, label: 'Rooms', total: stats.rooms.total, booked: stats.rooms.booked_today, revenue: stats.rooms.net_revenue, color: 'from-blue-50 to-blue-100/50', border: 'border-blue-200/50', iconColor: 'text-blue-700', iconBg: 'bg-blue-600/20' },
+            { icon: UtensilsCrossed, label: 'Tables', total: stats.tables.total, booked: stats.tables.booked_today, revenue: stats.tables.net_revenue, color: 'from-emerald-50 to-emerald-100/50', border: 'border-emerald-200/50', iconColor: 'text-emerald-700', iconBg: 'bg-emerald-600/20' },
+            { icon: Presentation, label: 'Conference', total: stats.conference.total, booked: stats.conference.booked_today, revenue: stats.conference.net_revenue, color: 'from-purple-50 to-purple-100/50', border: 'border-purple-200/50', iconColor: 'text-purple-700', iconBg: 'bg-purple-600/20' },
+            { icon: PartyPopper, label: 'Venues', total: stats.venues.total, booked: stats.venues.booked_today, revenue: stats.venues.net_revenue, color: 'from-rose-50 to-rose-100/50', border: 'border-rose-200/50', iconColor: 'text-rose-700', iconBg: 'bg-rose-600/20' },
+          ].map((item, i) => (
+            <div key={i} className={`bg-gradient-to-br ${item.color} rounded-2xl border ${item.border} shadow-sm p-5 hover:shadow-xl transition-all duration-300 hover:-translate-y-1`}>
+              <div className="flex items-center justify-between mb-3">
+                <div className={`${item.iconBg} w-10 h-10 rounded-xl flex items-center justify-center`}>
+                  <item.icon className={`w-5 h-5 ${item.iconColor}`} />
+                </div>
+                {!loading && (
+                  <span className="text-xs font-medium text-stone-500 bg-white/60 px-2.5 py-1 rounded-full">
+                    {item.booked} booked today
+                  </span>
+                )}
               </div>
-              {loading ? (
-                <div className="animate-pulse w-12 h-4 bg-stone-200/50 rounded"></div>
-              ) : (
-                <span className="text-xs font-medium text-stone-500 bg-white/60 px-2.5 py-1 rounded-full">
-                  {stats.rooms.booked_today} booked today
-                </span>
-              )}
-            </div>
-            <p className="text-stone-600 text-sm font-medium">Rooms</p>
-            {loading ? (
-              <div className="animate-pulse w-16 h-7 bg-stone-200/50 rounded mt-1"></div>
-            ) : (
+              <p className="text-stone-600 text-sm font-medium">{item.label}</p>
               <div className="flex items-end gap-3 mt-1">
-                <p className="text-2xl font-bold text-stone-800">{stats.rooms.total}</p>
-                {stats.rooms.net_revenue > 0 && (
+                <p className="text-2xl font-bold text-stone-800">{item.total}</p>
+                {item.revenue > 0 && (
                   <p className="text-xs text-emerald-600 font-medium bg-emerald-200/50 px-2 py-0.5 rounded-full">
-                    KES {stats.rooms.net_revenue.toLocaleString()}
+                    KES {item.revenue.toLocaleString()}
                   </p>
                 )}
               </div>
-            )}
-          </div>
-          
-          {/* Tables Card */}
-          <div className="group bg-gradient-to-br from-emerald-50/90 to-emerald-100/50 rounded-2xl border border-emerald-200/50 shadow-sm p-5 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-            <div className="flex items-center justify-between mb-3">
-              <div className="bg-emerald-600/15 w-10 h-10 rounded-xl flex items-center justify-center group-hover:bg-emerald-600/25 transition">
-                <UtensilsCrossed className="w-5 h-5 text-emerald-700" />
-              </div>
-              {loading ? (
-                <div className="animate-pulse w-12 h-4 bg-stone-200/50 rounded"></div>
-              ) : (
-                <span className="text-xs font-medium text-stone-500 bg-white/60 px-2.5 py-1 rounded-full">
-                  {stats.tables.booked_today} booked today
-                </span>
-              )}
             </div>
-            <p className="text-stone-600 text-sm font-medium">Tables</p>
-            {loading ? (
-              <div className="animate-pulse w-16 h-7 bg-stone-200/50 rounded mt-1"></div>
-            ) : (
-              <div className="flex items-end gap-3 mt-1">
-                <p className="text-2xl font-bold text-stone-800">{stats.tables.total}</p>
-                {stats.tables.net_revenue > 0 && (
-                  <p className="text-xs text-emerald-600 font-medium bg-emerald-200/50 px-2 py-0.5 rounded-full">
-                    KES {stats.tables.net_revenue.toLocaleString()}
-                  </p>
-                )}
-              </div>
-            )}
-          </div>
-          
-          {/* Conference Card */}
-          <div className="group bg-gradient-to-br from-purple-50/90 to-purple-100/50 rounded-2xl border border-purple-200/50 shadow-sm p-5 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-            <div className="flex items-center justify-between mb-3">
-              <div className="bg-purple-600/15 w-10 h-10 rounded-xl flex items-center justify-center group-hover:bg-purple-600/25 transition">
-                <Presentation className="w-5 h-5 text-purple-700" />
-              </div>
-              {loading ? (
-                <div className="animate-pulse w-12 h-4 bg-stone-200/50 rounded"></div>
-              ) : (
-                <span className="text-xs font-medium text-stone-500 bg-white/60 px-2.5 py-1 rounded-full">
-                  {stats.conference.booked_today} booked today
-                </span>
-              )}
-            </div>
-            <p className="text-stone-600 text-sm font-medium">Conference</p>
-            {loading ? (
-              <div className="animate-pulse w-16 h-7 bg-stone-200/50 rounded mt-1"></div>
-            ) : (
-              <div className="flex items-end gap-3 mt-1">
-                <p className="text-2xl font-bold text-stone-800">{stats.conference.total}</p>
-                {stats.conference.net_revenue > 0 && (
-                  <p className="text-xs text-emerald-600 font-medium bg-emerald-200/50 px-2 py-0.5 rounded-full">
-                    KES {stats.conference.net_revenue.toLocaleString()}
-                  </p>
-                )}
-              </div>
-            )}
-          </div>
-          
-          {/* Venues Card */}
-          <div className="group bg-gradient-to-br from-rose-50/90 to-rose-100/50 rounded-2xl border border-rose-200/50 shadow-sm p-5 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-            <div className="flex items-center justify-between mb-3">
-              <div className="bg-rose-600/15 w-10 h-10 rounded-xl flex items-center justify-center group-hover:bg-rose-600/25 transition">
-                <PartyPopper className="w-5 h-5 text-rose-700" />
-              </div>
-              {loading ? (
-                <div className="animate-pulse w-12 h-4 bg-stone-200/50 rounded"></div>
-              ) : (
-                <span className="text-xs font-medium text-stone-500 bg-white/60 px-2.5 py-1 rounded-full">
-                  {stats.venues.booked_today} booked today
-                </span>
-              )}
-            </div>
-            <p className="text-stone-600 text-sm font-medium">Venues</p>
-            {loading ? (
-              <div className="animate-pulse w-16 h-7 bg-stone-200/50 rounded mt-1"></div>
-            ) : (
-              <div className="flex items-end gap-3 mt-1">
-                <p className="text-2xl font-bold text-stone-800">{stats.venues.total}</p>
-                {stats.venues.net_revenue > 0 && (
-                  <p className="text-xs text-emerald-600 font-medium bg-emerald-200/50 px-2 py-0.5 rounded-full">
-                    KES {stats.venues.net_revenue.toLocaleString()}
-                  </p>
-                )}
-              </div>
-            )}
-          </div>
+          ))}
         </div>
 
         {/* Quick Actions */}
@@ -342,3 +241,4 @@ const StaffDashboard = () => {
 };
 
 export default StaffDashboard;
+    

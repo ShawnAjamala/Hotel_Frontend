@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { 
   Hotel, Users, UserCheck, Calendar, User, LogOut, 
   Shield, Menu, X, LayoutDashboard, UserPlus, 
-  Bell, Settings, Key
+  Bell, Settings, Key, Receipt, BarChart3
 } from 'lucide-react';
 
 const AdminNavbar = () => {
@@ -31,6 +31,7 @@ const AdminNavbar = () => {
     { icon: UserPlus, label: 'Create Staff', path: '/admin/staff/create' },
     { icon: UserCheck, label: 'Approvals', path: '/admin/staff/pending' },
     { icon: Key, label: 'Staff Passwords', path: '/admin/staff/passwords' },
+    { icon: BarChart3, label: 'Analytics', path: '/admin/refund-analytics' },
     { icon: Calendar, label: 'Bookings', path: '/admin/bookings' },
   ];
 
@@ -57,9 +58,7 @@ const AdminNavbar = () => {
           {navLinks.map((link) => {
             const Icon = link.icon;
             const active = isActive(link.path);
-            const isCreateStaff = link.label === 'Create Staff';
-            const isApprovals = link.label === 'Approvals';
-            const isStaffPasswords = link.label === 'Staff Passwords';
+            const isSpecial = ['Create Staff', 'Approvals', 'Staff Passwords', 'Analytics'].includes(link.label);
             
             return (
               <button
@@ -71,7 +70,7 @@ const AdminNavbar = () => {
                 className={`flex items-center gap-1.5 text-sm transition px-3 py-2 rounded-xl ${
                   active 
                     ? 'bg-amber-50 text-amber-800 font-medium' 
-                    : isCreateStaff || isApprovals || isStaffPasswords
+                    : isSpecial
                     ? 'text-amber-600 hover:text-amber-800 hover:bg-amber-50'
                     : 'text-stone-500 hover:text-amber-800 hover:bg-stone-50'
                 }`}
@@ -126,9 +125,7 @@ const AdminNavbar = () => {
           {navLinks.map((link, index) => {
             const Icon = link.icon;
             const active = isActive(link.path);
-            const isCreateStaff = link.label === 'Create Staff';
-            const isApprovals = link.label === 'Approvals';
-            const isStaffPasswords = link.label === 'Staff Passwords';
+            const isSpecial = ['Create Staff', 'Approvals', 'Staff Passwords', 'Analytics'].includes(link.label);
             
             return (
               <button
@@ -140,12 +137,12 @@ const AdminNavbar = () => {
                 className={`flex items-center gap-3 py-3 px-4 rounded-xl transition text-sm font-medium border-b border-stone-50 last:border-0 ${
                   active 
                     ? 'bg-amber-50 text-amber-800' 
-                    : isCreateStaff || isApprovals || isStaffPasswords
+                    : isSpecial
                     ? 'text-amber-600 hover:bg-amber-50'
                     : 'text-stone-600 hover:text-amber-800 hover:bg-amber-50'
                 }`}
               >
-                <Icon className={`w-5 h-5 ${active ? 'text-amber-800' : isCreateStaff || isApprovals || isStaffPasswords ? 'text-amber-500' : ''}`} />
+                <Icon className={`w-5 h-5 ${active ? 'text-amber-800' : isSpecial ? 'text-amber-500' : ''}`} />
                 <span className="flex-1 text-left">{link.label}</span>
                 {active && (
                   <span className="w-1.5 h-8 bg-amber-500 rounded-full"></span>

@@ -1,11 +1,9 @@
-// src/pages/GuestCancellation.jsx
-
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { 
-  ArrowLeft, AlertCircle, Send, Calendar, Users,
+  AlertCircle, Send, Calendar, Users,
   BedDouble, UtensilsCrossed, Presentation, PartyPopper,
-  CheckCircle, Save, Edit3, XCircle
+  CheckCircle, Save, Edit3
 } from 'lucide-react';
 import API from '../services/api';
 import GuestNavbar from '../components/GuestNavbar';
@@ -99,30 +97,24 @@ const GuestCancellation = () => {
     try {
       const token = localStorage.getItem('token');
       
-      const endpoints = {
-        room: `/rooms/${booking.id}/update/`,
-        table: `/tables/${booking.id}/update/`,
-        conference: `/conference/${booking.id}/update/`,
-        venue: `/venues/${booking.id}/update/`
-      };
-
-      const payload = {
+      // Send edit request to staff for approval
+      await API.post('/booking/edit/request/', {
+        booking_id: booking.id,
+        booking_type: booking.type,
         check_in: formData.check_in,
         check_out: formData.check_out,
         guests: parseInt(formData.guests)
-      };
-
-      await API.put(endpoints[booking.type] || endpoints.room, payload, {
+      }, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      setSuccessMessage('Your booking has been updated successfully!');
+      setSuccessMessage('Your edit request has been submitted for approval!');
       setSuccess(true);
       setTimeout(() => {
         navigate('/guest/bookings');
       }, 3000);
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to update booking. Please check availability.');
+      setError(err.response?.data?.error || 'Failed to submit edit request. Please try again.');
     } finally {
       setSubmitting(false);
     }
@@ -193,17 +185,11 @@ const GuestCancellation = () => {
         <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=1200')] bg-cover bg-center opacity-10" />
         <div className="absolute inset-0 bg-gradient-to-r from-amber-900/90 to-transparent" />
         <div className="relative max-w-4xl mx-auto">
-          <button 
-            onClick={() => navigate('/guest/bookings')} 
-            className="flex items-center gap-2 text-amber-200 hover:text-white transition mb-4"
-          >
-            <ArrowLeft className="w-4 h-4" /> Back to Bookings
-          </button>
           <h1 className="text-4xl font-serif font-bold">
             {isEdit ? 'Edit Booking' : 'Request Cancellation'}
           </h1>
           <p className="text-amber-100/80 mt-2">
-            {isEdit ? 'Update your booking dates and guest count' : 'Submit a cancellation request for your booking'}
+            {isEdit ? 'Request to update your booking dates' : 'Submit a cancellation request for your booking'}
           </p>
         </div>
       </section>
@@ -217,7 +203,7 @@ const GuestCancellation = () => {
                 <CheckCircle className="w-10 h-10 text-emerald-600" />
               </div>
               <h2 className="text-2xl font-bold text-stone-800 mb-2">
-                {isEdit ? 'Booking Updated!' : 'Request Submitted!'}
+                {isEdit ? 'Edit Request Submitted!' : 'Request Submitted!'}
               </h2>
               <p className="text-stone-500 mb-4">{successMessage}</p>
               <p className="text-sm text-stone-400">Redirecting to bookings...</p>
@@ -333,9 +319,9 @@ const GuestCancellation = () => {
                         <div>
                           <p className="text-sm font-medium text-blue-800">Important</p>
                           <ul className="text-xs text-blue-700 mt-1 space-y-1">
-                            <li>• New dates will be checked for availability</li>
-                            <li>• Price may change based on new dates</li>
-                            <li>• You'll receive a confirmation email after update</li>
+                            <li>• Your edit request will be reviewed by staff</li>
+                            <li>• Staff will check availability for new dates</li>
+                            <li>• You'll receive a confirmation once approved</li>
                           </ul>
                         </div>
                       </div>
@@ -387,7 +373,7 @@ const GuestCancellation = () => {
                     className="flex-1 py-3 border border-stone-200 rounded-xl text-stone-600 font-medium hover:bg-stone-50 transition"
                     disabled={submitting}
                   >
-                    Go Back
+                    Cancel
                   </button>
                   <button
                     type="submit"
@@ -397,12 +383,12 @@ const GuestCancellation = () => {
                     {submitting ? (
                       <>
                         <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full" />
-                        {isEdit ? 'Updating...' : 'Submitting...'}
+                        {isEdit ? 'Submitting...' : 'Submitting...'}
                       </>
                     ) : (
                       <>
                         {isEdit ? <Save className="w-4 h-4" /> : <Send className="w-4 h-4" />}
-                        {isEdit ? 'Update Booking' : 'Submit Request'}
+                        {isEdit ? 'Submit Edit Request' : 'Submit Request'}
                       </>
                     )}
                   </button>

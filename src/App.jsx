@@ -7,6 +7,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import ChangePassword from './pages/ChangePassword';
 import AdminUsers from "./pages/AdminUsers";
 import AdminApprovals from "./pages/AdminApprovals";
+import AdminAnalytics from './pages/AdminAnalytics';
 import AdminBookings from "./pages/AdminBookings";
 import AdminManageStaffPasswords from './pages/AdminManageStaffPasswords';
 import AdminCreateStaff from "./pages/AdminCreateStaff";
@@ -48,6 +49,7 @@ function App() {
         <Route path="/admin/bookings" element={<AdminBookings />} />
         <Route path="/admin/staff/create" element={<AdminCreateStaff />} />
         <Route path="/admin/staff/passwords" element={<AdminManageStaffPasswords />} />
+        <Route path="/admin/refund-analytics" element={<AdminAnalytics />} />
 
         {/* Staff Management */}
         <Route path="/change-password" element={<ChangePassword />} />

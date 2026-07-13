@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
-  Users, UserCheck, UserX, Shield, ArrowRight, Star, 
-  TrendingUp, DollarSign, BookOpen, Calendar, Clock,
-  Wallet, TrendingDown, Receipt, Bell, RefreshCw
+  Users, UserCheck, UserX, Shield, ArrowRight, 
+  TrendingUp, DollarSign, BookOpen, Calendar,
+  BedDouble, UtensilsCrossed, Presentation, PartyPopper,
+  Wallet, TrendingDown, Receipt, Bell
 } from 'lucide-react';
 import API from '../services/api';
 import AdminNavbar from '../components/AdminNavbar';
@@ -50,6 +51,54 @@ const AdminDashboard = () => {
     venues: { total: 0, booked_today: 0, net_revenue: 0 }
   };
 
+  // Resource data array - using direct imports instead of require
+  const resourceData = [
+    { 
+      Icon: BedDouble, 
+      label: 'Rooms', 
+      total: stats.rooms.total, 
+      booked: stats.rooms.booked_today,
+      revenue: stats.rooms.net_revenue,
+      color: 'from-blue-50 to-blue-100/50',
+      border: 'border-blue-200/50',
+      iconColor: 'text-blue-700',
+      iconBg: 'bg-blue-600/20'
+    },
+    { 
+      Icon: UtensilsCrossed, 
+      label: 'Tables', 
+      total: stats.tables.total, 
+      booked: stats.tables.booked_today,
+      revenue: stats.tables.net_revenue,
+      color: 'from-emerald-50 to-emerald-100/50',
+      border: 'border-emerald-200/50',
+      iconColor: 'text-emerald-700',
+      iconBg: 'bg-emerald-600/20'
+    },
+    { 
+      Icon: Presentation, 
+      label: 'Conference', 
+      total: stats.conference.total, 
+      booked: stats.conference.booked_today,
+      revenue: stats.conference.net_revenue,
+      color: 'from-purple-50 to-purple-100/50',
+      border: 'border-purple-200/50',
+      iconColor: 'text-purple-700',
+      iconBg: 'bg-purple-600/20'
+    },
+    { 
+      Icon: PartyPopper, 
+      label: 'Venues', 
+      total: stats.venues.total, 
+      booked: stats.venues.booked_today,
+      revenue: stats.venues.net_revenue,
+      color: 'from-rose-50 to-rose-100/50',
+      border: 'border-rose-200/50',
+      iconColor: 'text-rose-700',
+      iconBg: 'bg-rose-600/20'
+    }
+  ];
+
   return (
     <div className="min-h-screen bg-stone-50 font-sans">
       <AdminNavbar />
@@ -77,16 +126,16 @@ const AdminDashboard = () => {
         
         {/* Revenue Overview Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
-          <div className="group bg-gradient-to-br from-amber-50/90 to-amber-100/50 rounded-2xl border border-amber-200/50 shadow-sm p-6 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+          <div className="group bg-gradient-to-br from-emerald-50/90 to-emerald-100/50 rounded-2xl border border-emerald-200/50 shadow-sm p-6 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
             <div className="flex items-center justify-between mb-3">
-              <div className="bg-amber-600/15 w-12 h-12 rounded-xl flex items-center justify-center group-hover:bg-amber-600/25 transition">
-                <TrendingUp className="w-6 h-6 text-amber-700" />
+              <div className="bg-emerald-600/15 w-12 h-12 rounded-xl flex items-center justify-center group-hover:bg-emerald-600/25 transition">
+                <TrendingUp className="w-6 h-6 text-emerald-700" />
               </div>
-              <span className="text-xs font-medium text-amber-700 bg-amber-200/50 px-3 py-1 rounded-full">Gross</span>
+              <span className="text-xs font-medium text-emerald-700 bg-emerald-200/50 px-3 py-1 rounded-full">Gross</span>
             </div>
             <p className="text-stone-600 text-sm font-medium mb-1">Gross Revenue</p>
             {loading ? (
-              <div className="animate-pulse w-32 h-8 bg-amber-200/30 rounded"></div>
+              <div className="animate-pulse w-32 h-8 bg-emerald-200/30 rounded"></div>
             ) : (
               <p className="text-2xl font-bold text-stone-800">KES {stats.total_gross_revenue.toLocaleString()}</p>
             )}
@@ -95,7 +144,7 @@ const AdminDashboard = () => {
           <div className="group bg-gradient-to-br from-rose-50/90 to-rose-100/50 rounded-2xl border border-rose-200/50 shadow-sm p-6 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
             <div className="flex items-center justify-between mb-3">
               <div className="bg-rose-600/15 w-12 h-12 rounded-xl flex items-center justify-center group-hover:bg-rose-600/25 transition">
-                <TrendingDown className="w-6 h-6 text-rose-700" />
+                <Receipt className="w-6 h-6 text-rose-700" />
               </div>
               <span className="text-xs font-medium text-rose-700 bg-rose-200/50 px-3 py-1 rounded-full">Refunds</span>
             </div>
@@ -203,13 +252,8 @@ const AdminDashboard = () => {
         </h2>
         
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-10">
-          {[
-            { icon: 'BedDouble', label: 'Rooms', total: stats.rooms.total, booked: stats.rooms.booked_today, revenue: stats.rooms.net_revenue, color: 'from-blue-50 to-blue-100/50', border: 'border-blue-200/50', iconColor: 'text-blue-700', iconBg: 'bg-blue-600/20' },
-            { icon: 'UtensilsCrossed', label: 'Tables', total: stats.tables.total, booked: stats.tables.booked_today, revenue: stats.tables.net_revenue, color: 'from-emerald-50 to-emerald-100/50', border: 'border-emerald-200/50', iconColor: 'text-emerald-700', iconBg: 'bg-emerald-600/20' },
-            { icon: 'Presentation', label: 'Conference', total: stats.conference.total, booked: stats.conference.booked_today, revenue: stats.conference.net_revenue, color: 'from-purple-50 to-purple-100/50', border: 'border-purple-200/50', iconColor: 'text-purple-700', iconBg: 'bg-purple-600/20' },
-            { icon: 'PartyPopper', label: 'Venues', total: stats.venues.total, booked: stats.venues.booked_today, revenue: stats.venues.net_revenue, color: 'from-rose-50 to-rose-100/50', border: 'border-rose-200/50', iconColor: 'text-rose-700', iconBg: 'bg-rose-600/20' },
-          ].map((item, i) => {
-            const Icon = require('lucide-react')[item.icon];
+          {resourceData.map((item, i) => {
+            const Icon = item.Icon;
             return (
               <div key={i} className={`bg-gradient-to-br ${item.color} rounded-2xl border ${item.border} shadow-sm p-5 hover:shadow-xl transition-all duration-300 hover:-translate-y-1`}>
                 <div className="flex items-center justify-between mb-3">

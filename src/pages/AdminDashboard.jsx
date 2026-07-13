@@ -4,7 +4,7 @@ import {
   Users, UserCheck, UserX, Shield, ArrowRight, 
   TrendingUp, DollarSign, BookOpen, Calendar,
   BedDouble, UtensilsCrossed, Presentation, PartyPopper,
-  Wallet, TrendingDown, Receipt, Bell
+  Wallet, TrendingDown, Receipt, Bell, UserPlus
 } from 'lucide-react';
 import API from '../services/api';
 import AdminNavbar from '../components/AdminNavbar';
@@ -51,7 +51,7 @@ const AdminDashboard = () => {
     venues: { total: 0, booked_today: 0, net_revenue: 0 }
   };
 
-  // Resource data array - using direct imports instead of require
+  // Resource data array
   const resourceData = [
     { 
       Icon: BedDouble, 

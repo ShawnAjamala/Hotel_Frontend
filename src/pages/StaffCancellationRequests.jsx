@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Clock, CheckCircle, XCircle, AlertCircle, 
-  User, Calendar, DollarSign, MessageSquare, RefreshCw,
-  Filter, Eye, Check, X, Edit3
+  User, Calendar, RefreshCw,
+  Filter, Eye, X
 } from 'lucide-react';
 import API from '../services/api';
 import StaffNavbar from '../components/StaffNavbar';
@@ -14,7 +14,6 @@ const StaffCancellationRequests = () => {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('pending');
-  const [requestType, setRequestType] = useState('all'); // 'all', 'cancellation', 'edit'
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [staffNotes, setStaffNotes] = useState('');
@@ -25,41 +24,10 @@ const StaffCancellationRequests = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      // Fetch both cancellation and edit requests
-      const [cancellationRes, editRes] = await Promise.all([
-        API.get(`/cancellation/requests/?status=${filter}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        }),
-        API.get(`/booking/edit/requests/?status=${filter}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        })
-      ]);
-      
-      let allRequests = [];
-      
-      // Add cancellation requests with type marker
-      if (cancellationRes.data.requests) {
-        allRequests = allRequests.concat(
-          cancellationRes.data.requests.map(r => ({ ...r, request_type: 'cancellation' }))
-        );
-      }
-      
-      // Add edit requests with type marker
-      if (editRes.data.requests) {
-        allRequests = allRequests.concat(
-          editRes.data.requests.map(r => ({ ...r, request_type: 'edit' }))
-        );
-      }
-      
-      // Filter by request type if specified
-      if (requestType !== 'all') {
-        allRequests = allRequests.filter(r => r.request_type === requestType);
-      }
-      
-      // Sort by created_at (newest first)
-      allRequests.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-      
-      setRequests(allRequests);
+      const res = await API.get(`/cancellation/requests/?status=${filter}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setRequests(res.data.requests || []);
     } catch (err) {
       console.error('Error fetching requests:', err);
     } finally {
@@ -69,18 +37,14 @@ const StaffCancellationRequests = () => {
 
   useEffect(() => {
     fetchRequests();
-  }, [filter, requestType]);
+  }, [filter]);
 
-  const handleApprove = async (requestId, requestType) => {
+  const handleApprove = async (requestId) => {
     setActionLoading(true);
     setError('');
     try {
       const token = localStorage.getItem('token');
-      const endpoint = requestType === 'cancellation' 
-        ? `/cancellation/${requestId}/approve/`
-        : `/booking/edit/${requestId}/approve/`;
-      
-      await API.post(endpoint, 
+      await API.post(`/cancellation/${requestId}/approve/`, 
         { staff_notes: staffNotes },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -88,22 +52,18 @@ const StaffCancellationRequests = () => {
       setStaffNotes('');
       fetchRequests();
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to approve request');
+      setError(err.response?.data?.error || 'Failed to approve cancellation');
     } finally {
       setActionLoading(false);
     }
   };
 
-  const handleReject = async (requestId, requestType) => {
+  const handleReject = async (requestId) => {
     setActionLoading(true);
     setError('');
     try {
       const token = localStorage.getItem('token');
-      const endpoint = requestType === 'cancellation' 
-        ? `/cancellation/${requestId}/reject/`
-        : `/booking/edit/${requestId}/reject/`;
-      
-      await API.post(endpoint, 
+      await API.post(`/cancellation/${requestId}/reject/`, 
         { staff_notes: staffNotes },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -111,7 +71,7 @@ const StaffCancellationRequests = () => {
       setStaffNotes('');
       fetchRequests();
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to reject request');
+      setError(err.response?.data?.error || 'Failed to reject cancellation');
     } finally {
       setActionLoading(false);
     }
@@ -137,14 +97,6 @@ const StaffCancellationRequests = () => {
     }
   };
 
-  const getRequestTypeBadge = (type) => {
-    if (type === 'cancellation') {
-      return <span className="bg-rose-100 text-rose-700 px-2 py-0.5 rounded-full text-xs font-medium">Cancellation</span>;
-    } else {
-      return <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-xs font-medium">Edit</span>;
-    }
-  };
-
   return (
     <div className="min-h-screen bg-stone-50 font-sans">
       <StaffNavbar />
@@ -154,8 +106,8 @@ const StaffCancellationRequests = () => {
         <div className="absolute inset-0 bg-gradient-to-r from-amber-900/90 to-transparent" />
         <div className="relative max-w-7xl mx-auto">
           <div>
-            <h1 className="text-4xl font-bold">Booking Requests</h1>
-            <p className="text-amber-100/80 mt-2 text-lg">Manage cancellation and edit requests from guests</p>
+            <h1 className="text-4xl font-bold">Cancellation Requests</h1>
+            <p className="text-amber-100/80 mt-2 text-lg">Manage guest cancellation and refund requests</p>
           </div>
         </div>
       </section>
@@ -163,40 +115,22 @@ const StaffCancellationRequests = () => {
       <div className="max-w-7xl mx-auto px-8 -mt-6 relative z-10 pb-16">
         {/* Filter Tabs */}
         <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4 mb-8">
-          <div className="flex flex-wrap items-center gap-4">
-            <div className="flex items-center gap-2">
-              <Filter className="w-5 h-5 text-stone-400" />
-              <span className="text-sm font-medium text-stone-700">Status:</span>
-              {['pending', 'approved', 'rejected'].map((status) => (
-                <button
-                  key={status}
-                  onClick={() => setFilter(status)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition ${
-                    filter === status
-                      ? 'bg-amber-700 text-white shadow-md'
-                      : 'bg-stone-100 text-stone-600 hover:bg-amber-100'
-                  }`}
-                >
-                  {status.charAt(0).toUpperCase() + status.slice(1)}
-                </button>
-              ))}
-            </div>
-            <div className="flex items-center gap-2 border-l border-stone-200 pl-4">
-              <span className="text-sm font-medium text-stone-700">Type:</span>
-              {['all', 'cancellation', 'edit'].map((type) => (
-                <button
-                  key={type}
-                  onClick={() => setRequestType(type)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition ${
-                    requestType === type
-                      ? 'bg-amber-700 text-white shadow-md'
-                      : 'bg-stone-100 text-stone-600 hover:bg-amber-100'
-                  }`}
-                >
-                  {type === 'all' ? 'All' : type.charAt(0).toUpperCase() + type.slice(1)}
-                </button>
-              ))}
-            </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <Filter className="w-5 h-5 text-stone-400" />
+            <span className="text-sm font-medium text-stone-700">Status:</span>
+            {['pending', 'approved', 'rejected'].map((status) => (
+              <button
+                key={status}
+                onClick={() => setFilter(status)}
+                className={`px-4 py-2 rounded-full text-sm font-medium transition ${
+                  filter === status
+                    ? 'bg-amber-700 text-white shadow-md'
+                    : 'bg-stone-100 text-stone-600 hover:bg-amber-100'
+                }`}
+              >
+                {status.charAt(0).toUpperCase() + status.slice(1)}
+              </button>
+            ))}
             <button
               onClick={fetchRequests}
               className="ml-auto flex items-center gap-2 text-stone-500 hover:text-amber-700 text-sm transition"
@@ -216,7 +150,7 @@ const StaffCancellationRequests = () => {
           <div className="text-center py-16 bg-white rounded-2xl border border-stone-200">
             <AlertCircle className="w-16 h-16 text-stone-300 mx-auto mb-4" />
             <h3 className="text-xl font-semibold text-stone-600 mb-2">No {filter} requests</h3>
-            <p className="text-stone-400">There are no {filter} cancellation or edit requests at this time.</p>
+            <p className="text-stone-400">There are no {filter} cancellation requests at this time.</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -234,17 +168,10 @@ const StaffCancellationRequests = () => {
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div className="flex items-center gap-4">
                     <div className="bg-amber-100 w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0">
-                      {request.request_type === 'cancellation' ? (
-                        <XCircle className="w-6 h-6 text-amber-700" />
-                      ) : (
-                        <Edit3 className="w-6 h-6 text-amber-700" />
-                      )}
+                      <User className="w-6 h-6 text-amber-700" />
                     </div>
                     <div>
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-semibold text-stone-800">{request.guest}</h3>
-                        {getRequestTypeBadge(request.request_type)}
-                      </div>
+                      <h3 className="font-semibold text-stone-800">{request.guest}</h3>
                       <p className="text-stone-500 text-sm">{request.guest_email}</p>
                       <div className="flex items-center gap-3 mt-1">
                         <span className="text-xs text-stone-400 flex items-center gap-1">
@@ -258,21 +185,12 @@ const StaffCancellationRequests = () => {
                   </div>
                   <div className="flex items-center gap-4">
                     <div className="text-right">
-                      {request.request_type === 'cancellation' && request.refund_amount && (
+                      {request.refund_amount && (
                         <p className="text-sm text-stone-500">Refund</p>
                       )}
                       <p className="font-bold text-stone-800">
-                        {request.request_type === 'cancellation' && request.refund_amount 
-                          ? `KES ${parseFloat(request.refund_amount).toLocaleString()}` 
-                          : request.request_type === 'edit' 
-                          ? 'Date Change' 
-                          : '-'}
+                        {request.refund_amount ? `KES ${parseFloat(request.refund_amount).toLocaleString()}` : '-'}
                       </p>
-                      {request.request_type === 'edit' && request.booking_details && (
-                        <p className="text-xs text-stone-400">
-                          {request.booking_details.current_check_in} → {request.booking_details.requested_check_in}
-                        </p>
-                      )}
                     </div>
                     {getStatusBadge(request.status)}
                     {request.status === 'pending' && (
@@ -307,10 +225,7 @@ const StaffCancellationRequests = () => {
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowModal(false)} />
           <div className="relative bg-white rounded-3xl shadow-2xl p-8 max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-3">
-                <h2 className="text-2xl font-bold text-stone-800">Review Request</h2>
-                {getRequestTypeBadge(selectedRequest.request_type)}
-              </div>
+              <h2 className="text-2xl font-bold text-stone-800">Review Cancellation</h2>
               <button onClick={() => setShowModal(false)} className="text-stone-400 hover:text-stone-600">
                 <X className="w-6 h-6" />
               </button>
@@ -341,27 +256,11 @@ const StaffCancellationRequests = () => {
                     <p className="text-stone-500">Status</p>
                     {getStatusBadge(selectedRequest.status)}
                   </div>
-                  {selectedRequest.request_type === 'edit' && selectedRequest.booking_details && (
-                    <>
-                      <div className="col-span-1">
-                        <p className="text-stone-500">Current Dates</p>
-                        <p className="font-medium text-stone-800">
-                          {selectedRequest.booking_details.current_check_in} → {selectedRequest.booking_details.current_check_out}
-                        </p>
-                      </div>
-                      <div className="col-span-1">
-                        <p className="text-stone-500">Requested Dates</p>
-                        <p className="font-medium text-stone-800">
-                          {selectedRequest.booking_details.requested_check_in} → {selectedRequest.booking_details.requested_check_out}
-                        </p>
-                      </div>
-                    </>
-                  )}
                   <div className="col-span-2">
                     <p className="text-stone-500">Reason</p>
                     <p className="font-medium text-stone-800">{selectedRequest.reason}</p>
                   </div>
-                  {selectedRequest.booking_details && selectedRequest.request_type === 'cancellation' && (
+                  {selectedRequest.booking_details && (
                     <div className="col-span-2">
                       <p className="text-stone-500">Booking Details</p>
                       <p className="font-medium text-stone-800">
@@ -390,18 +289,18 @@ const StaffCancellationRequests = () => {
 
             <div className="flex gap-3">
               <button
-                onClick={() => handleReject(selectedRequest.id, selectedRequest.request_type)}
+                onClick={() => handleReject(selectedRequest.id)}
                 disabled={actionLoading}
                 className="flex-1 py-3 border border-red-200 text-red-600 rounded-xl font-medium hover:bg-red-50 transition disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 <XCircle className="w-4 h-4" /> Reject
               </button>
               <button
-                onClick={() => handleApprove(selectedRequest.id, selectedRequest.request_type)}
+                onClick={() => handleApprove(selectedRequest.id)}
                 disabled={actionLoading}
                 className="flex-1 py-3 bg-emerald-600 text-white rounded-xl font-medium hover:bg-emerald-700 transition disabled:opacity-50 flex items-center justify-center gap-2"
               >
-                {actionLoading ? 'Processing...' : <><CheckCircle className="w-4 h-4" /> Approve</>}
+                {actionLoading ? 'Processing...' : <><CheckCircle className="w-4 h-4" /> Approve & Refund</>}
               </button>
             </div>
           </div>

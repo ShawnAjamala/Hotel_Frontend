@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { 
-  AlertCircle, Send, Calendar, Users,
+  AlertCircle, Send, Calendar,
   BedDouble, UtensilsCrossed, Presentation, PartyPopper,
-  CheckCircle, Save, Edit3
+  CheckCircle
 } from 'lucide-react';
 import API from '../services/api';
 import GuestNavbar from '../components/GuestNavbar';
@@ -13,30 +13,17 @@ const GuestCancellation = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [booking, setBooking] = useState(null);
-  const [action, setAction] = useState(''); // 'edit' or 'cancel'
   const [reason, setReason] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
-  const [formData, setFormData] = useState({
-    check_in: '',
-    check_out: '',
-    guests: 1
-  });
 
   useEffect(() => {
     const bookingData = location.state?.booking;
-    const actionType = location.state?.action || 'cancel';
     
     if (bookingData) {
       setBooking(bookingData);
-      setAction(actionType);
-      setFormData({
-        check_in: bookingData.check_in || '',
-        check_out: bookingData.check_out || '',
-        guests: bookingData.guests || 1
-      });
     } else {
       navigate('/guest/bookings');
     }
@@ -72,54 +59,6 @@ const GuestCancellation = () => {
     }
   };
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-    setError('');
-  };
-
-  const handleEditSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    setSubmitting(true);
-
-    if (!formData.check_in || !formData.check_out) {
-      setError('Please select check-in and check-out dates');
-      setSubmitting(false);
-      return;
-    }
-
-    if (new Date(formData.check_in) >= new Date(formData.check_out)) {
-      setError('Check-out date must be after check-in date');
-      setSubmitting(false);
-      return;
-    }
-
-    try {
-      const token = localStorage.getItem('token');
-      
-      // Send edit request to staff for approval
-      await API.post('/booking/edit/request/', {
-        booking_id: booking.id,
-        booking_type: booking.type,
-        check_in: formData.check_in,
-        check_out: formData.check_out,
-        guests: parseInt(formData.guests)
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-
-      setSuccessMessage('Your edit request has been submitted for approval!');
-      setSuccess(true);
-      setTimeout(() => {
-        navigate('/guest/bookings');
-      }, 3000);
-    } catch (err) {
-      setError(err.response?.data?.error || 'Failed to submit edit request. Please try again.');
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
   const handleCancelSubmit = async (e) => {
     e.preventDefault();
     if (!reason.trim()) {
@@ -152,14 +91,6 @@ const GuestCancellation = () => {
     }
   };
 
-  const handleSubmit = (e) => {
-    if (action === 'edit') {
-      handleEditSubmit(e);
-    } else {
-      handleCancelSubmit(e);
-    }
-  };
-
   if (!booking) {
     return (
       <div className="min-h-screen bg-stone-50">
@@ -174,8 +105,6 @@ const GuestCancellation = () => {
 
   const Icon = getBookingIcon(booking.type);
   const label = getBookingLabel(booking.type);
-  const today = new Date().toISOString().split('T')[0];
-  const isEdit = action === 'edit';
 
   return (
     <div className="min-h-screen bg-stone-50 font-sans">
@@ -185,12 +114,8 @@ const GuestCancellation = () => {
         <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=1200')] bg-cover bg-center opacity-10" />
         <div className="absolute inset-0 bg-gradient-to-r from-amber-900/90 to-transparent" />
         <div className="relative max-w-4xl mx-auto">
-          <h1 className="text-4xl font-serif font-bold">
-            {isEdit ? 'Edit Booking' : 'Request Cancellation'}
-          </h1>
-          <p className="text-amber-100/80 mt-2">
-            {isEdit ? 'Request to update your booking dates' : 'Submit a cancellation request for your booking'}
-          </p>
+          <h1 className="text-4xl font-serif font-bold">Request Cancellation</h1>
+          <p className="text-amber-100/80 mt-2">Submit a cancellation request for your booking</p>
         </div>
       </section>
 
@@ -202,9 +127,7 @@ const GuestCancellation = () => {
               <div className="bg-emerald-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
                 <CheckCircle className="w-10 h-10 text-emerald-600" />
               </div>
-              <h2 className="text-2xl font-bold text-stone-800 mb-2">
-                {isEdit ? 'Edit Request Submitted!' : 'Request Submitted!'}
-              </h2>
+              <h2 className="text-2xl font-bold text-stone-800 mb-2">Request Submitted!</h2>
               <p className="text-stone-500 mb-4">{successMessage}</p>
               <p className="text-sm text-stone-400">Redirecting to bookings...</p>
             </div>
@@ -235,136 +158,51 @@ const GuestCancellation = () => {
                       {booking.payment_status || 'unpaid'}
                     </span>
                   </div>
-                  {isEdit && (
-                    <div className="flex justify-between text-sm">
-                      <span className="text-stone-500">Current Dates:</span>
-                      <span className="font-medium text-stone-800">
-                        {formData.check_in ? `${formData.check_in} → ${formData.check_out}` : 'N/A'}
-                      </span>
-                    </div>
-                  )}
                 </div>
               </div>
 
-              {/* Form */}
-              <form onSubmit={handleSubmit}>
+              {/* Cancellation Form */}
+              <form onSubmit={handleCancelSubmit}>
                 {error && (
                   <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl mb-4 text-sm">
                     {error}
                   </div>
                 )}
 
-                {isEdit ? (
-                  <>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                      <div>
-                        <label className="block text-sm font-medium text-stone-700 mb-1.5">
-                          New Check-in Date
-                        </label>
-                        <div className="relative">
-                          <Calendar className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
-                          <input
-                            type="date"
-                            name="check_in"
-                            value={formData.check_in}
-                            onChange={handleChange}
-                            min={today}
-                            className="w-full pl-10 pr-4 py-3 border border-stone-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm"
-                            required
-                          />
-                        </div>
-                      </div>
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-stone-700 mb-1.5">
+                    Reason for Cancellation <span className="text-red-500">*</span>
+                  </label>
+                  <textarea
+                    value={reason}
+                    onChange={(e) => {
+                      setReason(e.target.value);
+                      setError('');
+                    }}
+                    className="w-full px-4 py-3 border border-stone-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm resize-none"
+                    rows="4"
+                    placeholder="Please explain why you need to cancel this booking..."
+                    required
+                    disabled={submitting}
+                  />
+                  <p className="text-xs text-stone-400 mt-1.5">
+                    Your request will be reviewed by our staff. You'll receive a notification once it's processed.
+                  </p>
+                </div>
 
-                      <div>
-                        <label className="block text-sm font-medium text-stone-700 mb-1.5">
-                          New Check-out Date
-                        </label>
-                        <div className="relative">
-                          <Calendar className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
-                          <input
-                            type="date"
-                            name="check_out"
-                            value={formData.check_out}
-                            onChange={handleChange}
-                            min={formData.check_in || today}
-                            className="w-full pl-10 pr-4 py-3 border border-stone-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm"
-                            required
-                          />
-                        </div>
-                      </div>
+                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6">
+                  <div className="flex items-start gap-3">
+                    <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium text-amber-800">Important Information</p>
+                      <ul className="text-xs text-amber-700 mt-1 space-y-1">
+                        <li>• Cancellation requests are reviewed within 24-48 hours</li>
+                        <li>• Refunds will be processed if approved</li>
+                        <li>• You'll receive email confirmation once processed</li>
+                      </ul>
                     </div>
-
-                    <div className="mb-6">
-                      <label className="block text-sm font-medium text-stone-700 mb-1.5">
-                        Number of Guests
-                      </label>
-                      <div className="relative">
-                        <Users className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
-                        <input
-                          type="number"
-                          name="guests"
-                          value={formData.guests}
-                          onChange={handleChange}
-                          min="1"
-                          max="10"
-                          className="w-full pl-10 pr-4 py-3 border border-stone-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm"
-                          required
-                        />
-                      </div>
-                    </div>
-
-                    <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
-                      <div className="flex items-start gap-3">
-                        <Edit3 className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                        <div>
-                          <p className="text-sm font-medium text-blue-800">Important</p>
-                          <ul className="text-xs text-blue-700 mt-1 space-y-1">
-                            <li>• Your edit request will be reviewed by staff</li>
-                            <li>• Staff will check availability for new dates</li>
-                            <li>• You'll receive a confirmation once approved</li>
-                          </ul>
-                        </div>
-                      </div>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div className="mb-6">
-                      <label className="block text-sm font-medium text-stone-700 mb-1.5">
-                        Reason for Cancellation <span className="text-red-500">*</span>
-                      </label>
-                      <textarea
-                        value={reason}
-                        onChange={(e) => {
-                          setReason(e.target.value);
-                          setError('');
-                        }}
-                        className="w-full px-4 py-3 border border-stone-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm resize-none"
-                        rows="4"
-                        placeholder="Please explain why you need to cancel this booking..."
-                        required
-                        disabled={submitting}
-                      />
-                      <p className="text-xs text-stone-400 mt-1.5">
-                        Your request will be reviewed by our staff. You'll receive a notification once it's processed.
-                      </p>
-                    </div>
-
-                    <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6">
-                      <div className="flex items-start gap-3">
-                        <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
-                        <div>
-                          <p className="text-sm font-medium text-amber-800">Important Information</p>
-                          <ul className="text-xs text-amber-700 mt-1 space-y-1">
-                            <li>• Cancellation requests are reviewed within 24-48 hours</li>
-                            <li>• Refunds will be processed if approved</li>
-                            <li>• You'll receive email confirmation once processed</li>
-                          </ul>
-                        </div>
-                      </div>
-                    </div>
-                  </>
-                )}
+                  </div>
+                </div>
 
                 <div className="flex gap-3">
                   <button
@@ -383,12 +221,12 @@ const GuestCancellation = () => {
                     {submitting ? (
                       <>
                         <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full" />
-                        {isEdit ? 'Submitting...' : 'Submitting...'}
+                        Submitting...
                       </>
                     ) : (
                       <>
-                        {isEdit ? <Save className="w-4 h-4" /> : <Send className="w-4 h-4" />}
-                        {isEdit ? 'Submit Edit Request' : 'Submit Request'}
+                        <Send className="w-4 h-4" />
+                        Submit Request
                       </>
                     )}
                   </button>

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { 
   Clock, CheckCircle, XCircle, AlertCircle, 
   User, Calendar, RefreshCw,
-  Filter, Eye, X
+  Filter, Eye, X, Trash2
 } from 'lucide-react';
 import API from '../services/api';
 import StaffNavbar from '../components/StaffNavbar';
@@ -16,6 +16,8 @@ const StaffCancellationRequests = () => {
   const [filter, setFilter] = useState('pending');
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteRequestId, setDeleteRequestId] = useState(null);
   const [staffNotes, setStaffNotes] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState('');
@@ -77,10 +79,34 @@ const StaffCancellationRequests = () => {
     }
   };
 
+  const handleDelete = async (requestId) => {
+    setActionLoading(true);
+    setError('');
+    try {
+      const token = localStorage.getItem('token');
+      await API.delete(`/cancellation/${requestId}/delete/`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setShowDeleteModal(false);
+      setDeleteRequestId(null);
+      fetchRequests();
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to delete request');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   const openModal = (request) => {
     setSelectedRequest(request);
     setStaffNotes('');
     setShowModal(true);
+    setError('');
+  };
+
+  const openDeleteModal = (requestId) => {
+    setDeleteRequestId(requestId);
+    setShowDeleteModal(true);
     setError('');
   };
 
@@ -201,6 +227,15 @@ const StaffCancellationRequests = () => {
                         <Eye className="w-4 h-4" /> Review
                       </button>
                     )}
+                    {(request.status === 'approved' || request.status === 'rejected') && (
+                      <button
+                        onClick={() => openDeleteModal(request.id)}
+                        className="p-2 text-red-400 hover:bg-red-50 rounded-lg transition"
+                        title="Delete Request"
+                      >
+                        <Trash2 className="w-5 h-5" />
+                      </button>
+                    )}
                   </div>
                 </div>
                 <div className="mt-3 pt-3 border-t border-stone-100">
@@ -301,6 +336,44 @@ const StaffCancellationRequests = () => {
                 className="flex-1 py-3 bg-emerald-600 text-white rounded-xl font-medium hover:bg-emerald-700 transition disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {actionLoading ? 'Processing...' : <><CheckCircle className="w-4 h-4" /> Approve & Refund</>}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowDeleteModal(false)} />
+          <div className="relative bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full mx-4 text-center">
+            <div className="bg-red-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Trash2 className="w-8 h-8 text-red-500" />
+            </div>
+            <h3 className="text-xl font-bold text-stone-800 mb-2">Delete Request</h3>
+            <p className="text-stone-500 mb-6">
+              Are you sure you want to permanently delete this cancellation request?
+              <br />
+              <span className="text-xs text-stone-400">This action cannot be undone.</span>
+            </p>
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-2.5 rounded-xl mb-4 text-sm">
+                {error}
+              </div>
+            )}
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                className="flex-1 py-3 border border-stone-200 rounded-xl text-stone-600 font-medium hover:bg-stone-50 transition"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleDelete(deleteRequestId)}
+                disabled={actionLoading}
+                className="flex-1 py-3 bg-red-500 text-white rounded-xl font-medium hover:bg-red-600 transition disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {actionLoading ? 'Deleting...' : <><Trash2 className="w-4 h-4" /> Delete</>}
               </button>
             </div>
           </div>

@@ -4,7 +4,8 @@ import {
   TrendingUp, TrendingDown, Wallet, Bell, Users, 
   BedDouble, UtensilsCrossed, Presentation, PartyPopper,
   DollarSign, Calendar, Clock, Receipt, UserCheck,
-  ArrowRight, BarChart3, Landmark, Building2
+  ArrowRight, BarChart3, Landmark, Building2, 
+  CreditCard, XCircle, CheckCircle
 } from 'lucide-react';
 import API from '../services/api';
 import AdminNavbar from '../components/AdminNavbar';
@@ -42,16 +43,14 @@ const AdminAnalytics = () => {
     total_gross_revenue: 0,
     total_refunds: 0,
     total_net_revenue: 0,
-    monthly_gross_revenue: 0,
-    monthly_refunds: 0,
-    monthly_net_revenue: 0,
     pending_cancellations: 0,
     pending_refunds: 0,
     refunds_by_staff: [],
     rooms: { total: 0, booked_today: 0 },
     tables: { total: 0, booked_today: 0 },
     conference: { total: 0, booked_today: 0 },
-    venues: { total: 0, booked_today: 0 }
+    venues: { total: 0, booked_today: 0 },
+    users: { guests: 0, staff: 0, pending: 0, admins: 0 }
   };
 
   return (
@@ -98,7 +97,6 @@ const AdminAnalytics = () => {
                 </div>
                 <p className="text-stone-600 text-sm font-medium mb-1">Gross Revenue</p>
                 <p className="text-2xl font-bold text-stone-800">{formatCurrency(stats.total_gross_revenue)}</p>
-                <p className="text-xs text-emerald-600 mt-1">+{formatCurrency(stats.monthly_gross_revenue)} this month</p>
               </div>
 
               {/* Total Refunds */}
@@ -111,7 +109,6 @@ const AdminAnalytics = () => {
                 </div>
                 <p className="text-stone-600 text-sm font-medium mb-1">Total Refunds</p>
                 <p className="text-2xl font-bold text-rose-700">{formatCurrency(stats.total_refunds)}</p>
-                <p className="text-xs text-rose-600 mt-1">{formatCurrency(stats.monthly_refunds)} this month</p>
               </div>
 
               {/* Net Revenue */}
@@ -124,7 +121,6 @@ const AdminAnalytics = () => {
                 </div>
                 <p className="text-stone-600 text-sm font-medium mb-1">Net Revenue</p>
                 <p className="text-2xl font-bold text-amber-800">{formatCurrency(stats.total_net_revenue)}</p>
-                <p className="text-xs text-amber-700 mt-1">{formatCurrency(stats.monthly_net_revenue)} this month</p>
               </div>
 
               {/* Pending Actions */}
@@ -145,39 +141,96 @@ const AdminAnalytics = () => {
               </div>
             </div>
 
-            {/* Monthly Revenue Breakdown */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
-              <div className="bg-white rounded-2xl border border-stone-200 shadow-sm p-5 hover:shadow-lg transition">
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="bg-emerald-100 p-2 rounded-xl">
-                    <TrendingUp className="w-4 h-4 text-emerald-600" />
-                  </div>
-                  <h3 className="text-sm font-medium text-stone-600">Monthly Gross</h3>
-                </div>
-                <p className="text-2xl font-bold text-emerald-600">{formatCurrency(stats.monthly_gross_revenue)}</p>
-                <p className="text-xs text-stone-400 mt-1">Last 30 days</p>
-              </div>
+            {/* Refunds by Staff - Detailed */}
+            <div className="mb-10">
+              <h2 className="text-2xl font-bold text-stone-800 mb-6 flex items-center gap-3">
+                <div className="h-8 w-1.5 bg-gradient-to-b from-amber-600 to-amber-400 rounded-full"></div>
+                Refunds Processed by Staff
+                <span className="text-sm font-normal text-stone-400 ml-2">
+                  {stats.refunds_by_staff?.length || 0} staff members
+                </span>
+              </h2>
 
-              <div className="bg-white rounded-2xl border border-stone-200 shadow-sm p-5 hover:shadow-lg transition">
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="bg-rose-100 p-2 rounded-xl">
-                    <Receipt className="w-4 h-4 text-rose-600" />
+              <div className="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden">
+                {stats.refunds_by_staff && stats.refunds_by_staff.length > 0 ? (
+                  <div className="divide-y divide-stone-100">
+                    {stats.refunds_by_staff.map((staff, index) => (
+                      <div key={index} className="flex items-center justify-between px-6 py-4 hover:bg-stone-50 transition">
+                        <div className="flex items-center gap-4">
+                          <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
+                            index === 0 ? 'bg-amber-100' : 'bg-stone-100'
+                          }`}>
+                            {index === 0 ? (
+                              <span className="text-sm font-bold text-amber-700">🏆</span>
+                            ) : (
+                              <UserCheck className="w-5 h-5 text-stone-500" />
+                            )}
+                          </div>
+                          <div>
+                            <p className="font-medium text-stone-800">
+                              {staff.processed_by__username || 'Unknown Staff'}
+                              {index === 0 && (
+                                <span className="ml-2 text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">Top</span>
+                              )}
+                            </p>
+                            <p className="text-xs text-stone-400">
+                              {staff.refund_count} refund{staff.refund_count !== 1 ? 's' : ''} processed
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-bold text-rose-600">{formatCurrency(staff.total_refunds)}</p>
+                          <p className="text-xs text-stone-400">Total refunded</p>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                  <h3 className="text-sm font-medium text-stone-600">Monthly Refunds</h3>
-                </div>
-                <p className="text-2xl font-bold text-rose-600">{formatCurrency(stats.monthly_refunds)}</p>
-                <p className="text-xs text-stone-400 mt-1">Last 30 days</p>
+                ) : (
+                  <div className="text-center py-12">
+                    <Receipt className="w-12 h-12 text-stone-300 mx-auto mb-3" />
+                    <p className="text-stone-500">No refunds have been processed yet.</p>
+                    <p className="text-xs text-stone-400 mt-1">Refunds will appear here once approved and processed.</p>
+                  </div>
+                )}
               </div>
+            </div>
 
-              <div className="bg-white rounded-2xl border border-stone-200 shadow-sm p-5 hover:shadow-lg transition">
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="bg-amber-100 p-2 rounded-xl">
-                    <Wallet className="w-4 h-4 text-amber-600" />
+            {/* Refund Status Summary */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
+              <div className="bg-white rounded-2xl border border-stone-200 shadow-sm p-4 hover:shadow-lg transition">
+                <div className="flex items-center gap-3">
+                  <div className="bg-amber-100 w-10 h-10 rounded-xl flex items-center justify-center">
+                    <Clock className="w-5 h-5 text-amber-600" />
                   </div>
-                  <h3 className="text-sm font-medium text-stone-600">Monthly Net</h3>
+                  <div>
+                    <p className="text-xs text-stone-400">Pending Refunds</p>
+                    <p className="text-xl font-bold text-amber-600">{stats.pending_refunds || 0}</p>
+                  </div>
                 </div>
-                <p className="text-2xl font-bold text-amber-700">{formatCurrency(stats.monthly_net_revenue)}</p>
-                <p className="text-xs text-stone-400 mt-1">Last 30 days</p>
+              </div>
+              <div className="bg-white rounded-2xl border border-stone-200 shadow-sm p-4 hover:shadow-lg transition">
+                <div className="flex items-center gap-3">
+                  <div className="bg-emerald-100 w-10 h-10 rounded-xl flex items-center justify-center">
+                    <CheckCircle className="w-5 h-5 text-emerald-600" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-stone-400">Completed Refunds</p>
+                    <p className="text-xl font-bold text-emerald-600">
+                      {stats.refunds_by_staff?.reduce((sum, s) => sum + s.refund_count, 0) || 0}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-white rounded-2xl border border-stone-200 shadow-sm p-4 hover:shadow-lg transition">
+                <div className="flex items-center gap-3">
+                  <div className="bg-rose-100 w-10 h-10 rounded-xl flex items-center justify-center">
+                    <CreditCard className="w-5 h-5 text-rose-600" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-stone-400">Total Refund Amount</p>
+                    <p className="text-xl font-bold text-rose-600">{formatCurrency(stats.total_refunds)}</p>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -207,41 +260,6 @@ const AdminAnalytics = () => {
                   <p className="text-2xl font-bold text-stone-800">{item.total}</p>
                 </div>
               ))}
-            </div>
-
-            {/* Refunds by Staff */}
-            <h2 className="text-2xl font-bold text-stone-800 mb-6 flex items-center gap-3">
-              <div className="h-8 w-1.5 bg-gradient-to-b from-amber-600 to-amber-400 rounded-full"></div>
-              Refunds Processed by Staff
-            </h2>
-
-            <div className="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden mb-10">
-              {stats.refunds_by_staff && stats.refunds_by_staff.length > 0 ? (
-                <div className="divide-y divide-stone-100">
-                  {stats.refunds_by_staff.map((staff, index) => (
-                    <div key={index} className="flex items-center justify-between px-6 py-4 hover:bg-stone-50 transition">
-                      <div className="flex items-center gap-4">
-                        <div className="bg-amber-100 w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0">
-                          <UserCheck className="w-5 h-5 text-amber-700" />
-                        </div>
-                        <div>
-                          <p className="font-medium text-stone-800">{staff.processed_by__username || 'Unknown Staff'}</p>
-                          <p className="text-xs text-stone-400">{staff.refund_count} refund{staff.refund_count !== 1 ? 's' : ''} processed</p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-bold text-rose-600">{formatCurrency(staff.total_refunds)}</p>
-                        <p className="text-xs text-stone-400">Total refunded</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-12">
-                  <Receipt className="w-12 h-12 text-stone-300 mx-auto mb-3" />
-                  <p className="text-stone-500">No refunds have been processed yet.</p>
-                </div>
-              )}
             </div>
 
             {/* Quick Actions */}

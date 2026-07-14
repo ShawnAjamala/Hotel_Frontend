@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { 
   Clock, CheckCircle, XCircle, AlertCircle, 
   User, Calendar, RefreshCw,
-  Filter, Eye, X, Trash2, CreditCard
+  Filter, Eye, X, Trash2, CreditCard, Check
 } from 'lucide-react';
 import API from '../services/api';
 import StaffNavbar from '../components/StaffNavbar';
@@ -21,6 +21,7 @@ const StaffCancellationRequests = () => {
   const [staffNotes, setStaffNotes] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState('');
+  const [refundStatuses, setRefundStatuses] = useState({});
 
   const fetchRequests = async () => {
     setLoading(true);
@@ -29,7 +30,25 @@ const StaffCancellationRequests = () => {
       const res = await API.get(`/cancellation/requests/?status=${filter}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setRequests(res.data.requests || []);
+      
+      const requestsData = res.data.requests || [];
+      
+      // Fetch refund status for each request that is approved
+      const statuses = {};
+      for (const req of requestsData) {
+        if (req.status === 'approved') {
+          try {
+            const refundRes = await API.get(`/refund/by-request/${req.id}/`, {
+              headers: { Authorization: `Bearer ${token}` }
+            });
+            statuses[req.id] = refundRes.data.status;
+          } catch {
+            statuses[req.id] = 'pending';
+          }
+        }
+      }
+      setRefundStatuses(statuses);
+      setRequests(requestsData);
     } catch (err) {
       console.error('Error fetching requests:', err);
     } finally {
@@ -79,14 +98,26 @@ const StaffCancellationRequests = () => {
     }
   };
 
-  const handleProcessRefund = async (refundId) => {
+  const handleProcessRefund = async (requestId) => {
     setActionLoading(true);
     setError('');
     try {
       const token = localStorage.getItem('token');
+      const refundRes = await API.get(`/refund/by-request/${requestId}/`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      const refundId = refundRes.data.id;
+      
       await API.post(`/refund/${refundId}/process/`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
+      
+      setRefundStatuses(prev => ({
+        ...prev,
+        [requestId]: 'completed'
+      }));
+      
       fetchRequests();
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to process refund');
@@ -139,13 +170,13 @@ const StaffCancellationRequests = () => {
     }
   };
 
-  // Find the refund ID for a request
-  const getRefundId = (request) => {
-    // If the request has a refund_amount, it means a refund was created
-    // We need to fetch the refund ID from the backend or use a different approach
-    // For now, we'll assume the refund ID is the same as the request ID
-    // In a real implementation, you'd want to fetch this from the API
-    return request.id;
+  const isRefundCompleted = (requestId) => {
+    return refundStatuses[requestId] === 'completed';
+  };
+
+  const isRefundPending = (requestId) => {
+    const status = refundStatuses[requestId];
+    return status === 'pending' || status === 'processing' || !status;
   };
 
   return (
@@ -207,8 +238,8 @@ const StaffCancellationRequests = () => {
           <div className="space-y-4">
             {requests.map((request) => {
               const isApproved = request.status === 'approved';
-              // Check if refund needs processing (has refund_amount but might not be processed)
-              const needsProcessing = isApproved && request.refund_amount && request.refund_amount > 0;
+              const refundCompleted = isRefundCompleted(request.id);
+              const refundPending = isRefundPending(request.id);
               
               return (
                 <div
@@ -249,6 +280,11 @@ const StaffCancellationRequests = () => {
                         </p>
                       </div>
                       {getStatusBadge(request.status)}
+                      {refundCompleted && (
+                        <span className="bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-full text-xs font-medium flex items-center gap-1">
+                          <Check className="w-3 h-3" /> Refunded
+                        </span>
+                      )}
                       <div className="flex gap-2">
                         {request.status === 'pending' && (
                           <button
@@ -258,9 +294,9 @@ const StaffCancellationRequests = () => {
                             <Eye className="w-4 h-4" /> Review
                           </button>
                         )}
-                        {isApproved && (
+                        {isApproved && refundPending && (
                           <button
-                            onClick={() => handleProcessRefund(getRefundId(request))}
+                            onClick={() => handleProcessRefund(request.id)}
                             disabled={actionLoading}
                             className="bg-emerald-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-emerald-700 transition flex items-center gap-1"
                           >

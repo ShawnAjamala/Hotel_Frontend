@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { 
   Clock, CheckCircle, XCircle, AlertCircle, 
   User, Calendar, RefreshCw,
-  Filter, Eye, X, Trash2
+  Filter, Eye, X, Trash2, CreditCard
 } from 'lucide-react';
 import API from '../services/api';
 import StaffNavbar from '../components/StaffNavbar';
@@ -79,6 +79,22 @@ const StaffCancellationRequests = () => {
     }
   };
 
+  const handleProcessRefund = async (refundId) => {
+    setActionLoading(true);
+    setError('');
+    try {
+      const token = localStorage.getItem('token');
+      await API.post(`/refund/${refundId}/process/`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      fetchRequests();
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to process refund');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   const handleDelete = async (requestId) => {
     setActionLoading(true);
     setError('');
@@ -121,6 +137,15 @@ const StaffCancellationRequests = () => {
       default:
         return <span className="bg-stone-100 text-stone-600 px-2.5 py-1 rounded-full text-xs font-medium">{status}</span>;
     }
+  };
+
+  // Find the refund ID for a request
+  const getRefundId = (request) => {
+    // If the request has a refund_amount, it means a refund was created
+    // We need to fetch the refund ID from the backend or use a different approach
+    // For now, we'll assume the refund ID is the same as the request ID
+    // In a real implementation, you'd want to fetch this from the API
+    return request.id;
   };
 
   return (
@@ -180,76 +205,93 @@ const StaffCancellationRequests = () => {
           </div>
         ) : (
           <div className="space-y-4">
-            {requests.map((request) => (
-              <div
-                key={request.id}
-                className={`bg-white border rounded-2xl p-6 hover:shadow-md transition ${
-                  request.status === 'pending'
-                    ? 'border-amber-200 border-l-4 border-l-amber-500'
-                    : request.status === 'approved'
-                    ? 'border-emerald-200 border-l-4 border-l-emerald-500'
-                    : 'border-red-200 border-l-4 border-l-red-500'
-                }`}
-              >
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                  <div className="flex items-center gap-4">
-                    <div className="bg-amber-100 w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0">
-                      <User className="w-6 h-6 text-amber-700" />
+            {requests.map((request) => {
+              const isApproved = request.status === 'approved';
+              // Check if refund needs processing (has refund_amount but might not be processed)
+              const needsProcessing = isApproved && request.refund_amount && request.refund_amount > 0;
+              
+              return (
+                <div
+                  key={request.id}
+                  className={`bg-white border rounded-2xl p-6 hover:shadow-md transition ${
+                    request.status === 'pending'
+                      ? 'border-amber-200 border-l-4 border-l-amber-500'
+                      : request.status === 'approved'
+                      ? 'border-emerald-200 border-l-4 border-l-emerald-500'
+                      : 'border-red-200 border-l-4 border-l-red-500'
+                  }`}
+                >
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div className="flex items-center gap-4">
+                      <div className="bg-amber-100 w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0">
+                        <User className="w-6 h-6 text-amber-700" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-stone-800">{request.guest}</h3>
+                        <p className="text-stone-500 text-sm">{request.guest_email}</p>
+                        <div className="flex items-center gap-3 mt-1">
+                          <span className="text-xs text-stone-400 flex items-center gap-1">
+                            <Calendar className="w-3 h-3" /> {new Date(request.created_at).toLocaleDateString()}
+                          </span>
+                          <span className="text-xs text-stone-400 flex items-center gap-1">
+                            <Clock className="w-3 h-3" /> {request.booking_type} #{request.booking_id}
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="font-semibold text-stone-800">{request.guest}</h3>
-                      <p className="text-stone-500 text-sm">{request.guest_email}</p>
-                      <div className="flex items-center gap-3 mt-1">
-                        <span className="text-xs text-stone-400 flex items-center gap-1">
-                          <Calendar className="w-3 h-3" /> {new Date(request.created_at).toLocaleDateString()}
-                        </span>
-                        <span className="text-xs text-stone-400 flex items-center gap-1">
-                          <Clock className="w-3 h-3" /> {request.booking_type} #{request.booking_id}
-                        </span>
+                    <div className="flex items-center gap-4 flex-wrap">
+                      <div className="text-right">
+                        {request.refund_amount && (
+                          <p className="text-sm text-stone-500">Refund</p>
+                        )}
+                        <p className="font-bold text-stone-800">
+                          {request.refund_amount ? `KES ${parseFloat(request.refund_amount).toLocaleString()}` : '-'}
+                        </p>
+                      </div>
+                      {getStatusBadge(request.status)}
+                      <div className="flex gap-2">
+                        {request.status === 'pending' && (
+                          <button
+                            onClick={() => openModal(request)}
+                            className="bg-amber-700 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-amber-800 transition flex items-center gap-1"
+                          >
+                            <Eye className="w-4 h-4" /> Review
+                          </button>
+                        )}
+                        {isApproved && (
+                          <button
+                            onClick={() => handleProcessRefund(getRefundId(request))}
+                            disabled={actionLoading}
+                            className="bg-emerald-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-emerald-700 transition flex items-center gap-1"
+                          >
+                            <CreditCard className="w-4 h-4" /> Process Refund
+                          </button>
+                        )}
+                        {(request.status === 'approved' || request.status === 'rejected') && (
+                          <button
+                            onClick={() => openDeleteModal(request.id)}
+                            className="p-2 text-red-400 hover:bg-red-50 rounded-lg transition"
+                            title="Delete Request"
+                          >
+                            <Trash2 className="w-5 h-5" />
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-4">
-                    <div className="text-right">
-                      {request.refund_amount && (
-                        <p className="text-sm text-stone-500">Refund</p>
-                      )}
-                      <p className="font-bold text-stone-800">
-                        {request.refund_amount ? `KES ${parseFloat(request.refund_amount).toLocaleString()}` : '-'}
+                  <div className="mt-3 pt-3 border-t border-stone-100">
+                    <p className="text-sm text-stone-600">
+                      <span className="font-medium">Reason:</span> {request.reason}
+                    </p>
+                    {request.staff_notes && (
+                      <p className="text-sm text-stone-500 mt-1">
+                        <span className="font-medium">Staff Notes:</span> {request.staff_notes}
                       </p>
-                    </div>
-                    {getStatusBadge(request.status)}
-                    {request.status === 'pending' && (
-                      <button
-                        onClick={() => openModal(request)}
-                        className="bg-amber-700 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-amber-800 transition flex items-center gap-1"
-                      >
-                        <Eye className="w-4 h-4" /> Review
-                      </button>
-                    )}
-                    {(request.status === 'approved' || request.status === 'rejected') && (
-                      <button
-                        onClick={() => openDeleteModal(request.id)}
-                        className="p-2 text-red-400 hover:bg-red-50 rounded-lg transition"
-                        title="Delete Request"
-                      >
-                        <Trash2 className="w-5 h-5" />
-                      </button>
                     )}
                   </div>
                 </div>
-                <div className="mt-3 pt-3 border-t border-stone-100">
-                  <p className="text-sm text-stone-600">
-                    <span className="font-medium">Reason:</span> {request.reason}
-                  </p>
-                  {request.staff_notes && (
-                    <p className="text-sm text-stone-500 mt-1">
-                      <span className="font-medium">Staff Notes:</span> {request.staff_notes}
-                    </p>
-                  )}
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

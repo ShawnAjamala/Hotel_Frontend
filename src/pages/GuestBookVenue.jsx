@@ -138,7 +138,7 @@ const GuestBookVenue = () => {
         <div className="absolute inset-0 bg-gradient-to-r from-stone-900/90 to-transparent" />
         <div className="relative max-w-2xl mx-auto">
           <button onClick={() => navigate('/guest/events')} className="flex items-center gap-2 text-amber-300 hover:text-amber-200 mb-4">
-            <ArrowLeft className="w-4 h-4" /><span className="text-sm">Back to Venues</span>
+            <ArrowLeft className="w-4 h-4" /><span className="text-sm"></span>
           </button>
           <div className="flex items-center gap-4 mt-2">
             <div className="w-16 h-16 rounded-xl overflow-hidden bg-white/10 flex-shrink-0">

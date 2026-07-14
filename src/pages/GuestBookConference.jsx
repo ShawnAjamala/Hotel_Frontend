@@ -148,7 +148,7 @@ const GuestBookConference = () => {
             className="flex items-center gap-2 text-amber-300 hover:text-amber-200 mb-4"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span className="text-sm">Back to Conference Rooms</span>
+            <span className="text-sm"></span>
           </button>
           <div className="flex items-center gap-4 mt-2">
             <div className="w-16 h-16 rounded-xl overflow-hidden bg-white/10 flex-shrink-0">

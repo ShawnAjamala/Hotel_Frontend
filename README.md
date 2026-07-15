@@ -122,58 +122,6 @@ Vercel - Frontend hosting
 
 Render - Backend hosting
 
-Project Structure
-text
-Hotel_Frontend/
-├── public/
-│   ├── favicon.svg
-│   └── _redirects
-├── src/
-│   ├── components/
-│   │   ├── Navbar.jsx
-│   │   ├── GuestNavbar.jsx
-│   │   ├── StaffNavbar.jsx
-│   │   ├── AdminNavbar.jsx
-│   │   └── Footer.jsx
-│   ├── pages/
-│   │   ├── PublicDashboard.jsx
-│   │   ├── Auth.jsx
-│   │   ├── GuestDashboard.jsx
-│   │   ├── GuestRooms.jsx
-│   │   ├── GuestBookRoom.jsx
-│   │   ├── GuestTables.jsx
-│   │   ├── GuestBookTable.jsx
-│   │   ├── GuestConference.jsx
-│   │   ├── GuestBookConference.jsx
-│   │   ├── GuestVenues.jsx
-│   │   ├── GuestBookVenue.jsx
-│   │   ├── GuestBookings.jsx
-│   │   ├── StaffDashboard.jsx
-│   │   ├── StaffRooms.jsx
-│   │   ├── StaffTables.jsx
-│   │   ├── StaffConference.jsx
-│   │   ├── StaffVenues.jsx
-│   │   ├── StaffBookings.jsx
-│   │   ├── AdminDashboard.jsx
-│   │   ├── AdminUsers.jsx
-│   │   ├── AdminApprovals.jsx
-│   │   ├── AdminBookings.jsx
-│   │   └── Profile.jsx
-│   ├── services/
-│   │   └── api.js
-│   ├── App.jsx
-│   └── main.jsx
-├── index.html
-├── package.json
-├── vite.config.js
-├── vercel.json
-└── README.md
-Getting Started
-Prerequisites
-Node.js (version 16 or higher)
-
-npm or yarn package manager
-
 Installation
 Clone the repository
 

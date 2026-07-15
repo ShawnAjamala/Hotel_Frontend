@@ -161,7 +161,7 @@ const AdminAnalytics = () => {
                             index === 0 ? 'bg-amber-100' : 'bg-stone-100'
                           }`}>
                             {index === 0 ? (
-                              <span className="text-sm font-bold text-amber-700">🏆</span>
+                              <span className="text-sm font-bold text-amber-700"></span>
                             ) : (
                               <UserCheck className="w-5 h-5 text-stone-500" />
                             )}

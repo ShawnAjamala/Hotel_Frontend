@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Edit, Trash2, PartyPopper, X, ImagePlus, Users, Grid3X3, List, Package, PlusCircle, MinusCircle } from 'lucide-react';
+import { Plus, Edit, Trash2, PartyPopper, X, ImagePlus, Users, Grid3X3, List, Package, PlusCircle, MinusCircle, AlertCircle } from 'lucide-react';
 import API from '../services/api';
 import StaffNavbar from '../components/StaffNavbar';
 import Footer from '../components/Footer';
@@ -28,6 +28,9 @@ const StaffVenues = () => {
   const [packagePrice, setPackagePrice] = useState('');
   const [image, setImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
+
+  // Popup state
+  const [popup, setPopup] = useState({ show: false, type: '', message: '', onConfirm: null, venueName: '' });
 
   const token = localStorage.getItem('token');
   const headers = { Authorization: `Bearer ${token}` };
@@ -105,10 +108,20 @@ const StaffVenues = () => {
     } catch (err) {} 
   };
 
+  const showDeletePopup = (id, name) => {
+    setPopup({
+      show: true,
+      type: 'danger',
+      message: `Are you sure you want to deactivate "${name}"? This venue will no longer be available for booking.`,
+      onConfirm: () => handleDelete(id),
+      venueName: name
+    });
+  };
+
   const handleDelete = async (id) => { 
-    if (!window.confirm('Deactivate this venue?')) return; 
     try { 
       await API.delete(`/venues/${id}/delete/`, { headers }); 
+      setPopup({ show: false, type: '', message: '', onConfirm: null, venueName: '' });
       fetchVenues(); 
     } catch (err) {} 
   };
@@ -149,12 +162,55 @@ const StaffVenues = () => {
     setShowForm(false); 
   };
 
+  const closePopup = () => {
+    setPopup({ show: false, type: '', message: '', onConfirm: null, venueName: '' });
+  };
+
   const totalPages = Math.ceil(venues.length / perPage);
   const paginatedVenues = venues.slice((page - 1) * perPage, page * perPage);
 
   return (
     <div className="min-h-screen bg-stone-50 font-sans">
       <StaffNavbar />
+
+      {/* Delete Confirmation Popup */}
+      {popup.show && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={closePopup} />
+          <div className="relative bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 text-center animate-in fade-in zoom-in duration-200">
+            <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${
+              popup.type === 'danger' ? 'bg-red-100' : 'bg-amber-100'
+            }`}>
+              {popup.type === 'danger' ? (
+                <Trash2 className="w-8 h-8 text-red-500" />
+              ) : (
+                <AlertCircle className="w-8 h-8 text-amber-600" />
+              )}
+            </div>
+            <h3 className="text-xl font-bold text-stone-800 mb-2">
+              {popup.type === 'danger' ? 'Deactivate Venue?' : 'Confirm Action'}
+            </h3>
+            <p className="text-stone-500 mb-6 text-sm leading-relaxed">{popup.message}</p>
+            <div className="flex gap-3">
+              <button 
+                onClick={closePopup} 
+                className="flex-1 py-3 border border-stone-200 rounded-xl text-stone-600 font-medium hover:bg-stone-50 transition"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={popup.onConfirm} 
+                className={`flex-1 py-3 rounded-xl font-medium text-white transition ${
+                  popup.type === 'danger' ? 'bg-red-500 hover:bg-red-600' : 'bg-amber-700 hover:bg-amber-800'
+                }`}
+              >
+                {popup.type === 'danger' ? 'Deactivate' : 'Confirm'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <section className="bg-gradient-to-br from-amber-900 to-amber-800 text-white py-14 px-8">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between">
@@ -299,11 +355,11 @@ const StaffVenues = () => {
           <>
             {viewMode==='grid'?(
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {paginatedVenues.map(v=>(<div key={v.id} className="bg-white rounded-2xl border overflow-hidden hover:shadow-lg transition group"><div className="h-48 bg-stone-100 relative">{v.image?<img src={v.image} className="w-full h-full object-cover group-hover:scale-105 transition duration-500" />:<div className="w-full h-full flex items-center justify-center"><PartyPopper className="w-12 h-12 text-stone-300" /></div>}<div className="absolute top-3 left-3 bg-white/90 px-3 py-1 rounded-full text-sm font-bold">{v.name}</div><div className="absolute top-3 right-3 bg-amber-700 text-white px-3 py-1 rounded-full text-xs capitalize">{v.venue_type}</div></div><div className="p-5"><div className="flex justify-between mb-2"><h3 className="font-bold">{v.name}</h3><span className="text-emerald-600 font-bold">KES {parseFloat(v.price_per_day).toLocaleString()}<span className="text-stone-400 text-xs">/day</span></span></div><div className="flex items-center gap-1 text-stone-400 text-xs mb-3"><Users className="w-3 h-3" /> {v.capacity} guests</div><div className="flex gap-3 pt-4 border-t"><button onClick={()=>openEdit(v)} className="flex-1 flex items-center justify-center gap-2 text-sm bg-amber-50 text-amber-700 py-2.5 rounded-xl hover:bg-amber-100"><Edit className="w-4 h-4" /> Edit</button><button onClick={()=>handleDelete(v.id)} className="flex-1 flex items-center justify-center gap-2 text-sm bg-red-50 text-red-500 py-2.5 rounded-xl hover:bg-red-100"><Trash2 className="w-4 h-4" /> Delete</button></div></div></div>))}
+                {paginatedVenues.map(v=>(<div key={v.id} className="bg-white rounded-2xl border overflow-hidden hover:shadow-lg transition group"><div className="h-48 bg-stone-100 relative">{v.image?<img src={v.image} className="w-full h-full object-cover group-hover:scale-105 transition duration-500" />:<div className="w-full h-full flex items-center justify-center"><PartyPopper className="w-12 h-12 text-stone-300" /></div>}<div className="absolute top-3 left-3 bg-white/90 px-3 py-1 rounded-full text-sm font-bold">{v.name}</div><div className="absolute top-3 right-3 bg-amber-700 text-white px-3 py-1 rounded-full text-xs capitalize">{v.venue_type}</div></div><div className="p-5"><div className="flex justify-between mb-2"><h3 className="font-bold">{v.name}</h3><span className="text-emerald-600 font-bold">KES {parseFloat(v.price_per_day).toLocaleString()}<span className="text-stone-400 text-xs">/day</span></span></div><div className="flex items-center gap-1 text-stone-400 text-xs mb-3"><Users className="w-3 h-3" /> {v.capacity} guests</div><div className="flex gap-3 pt-4 border-t"><button onClick={()=>openEdit(v)} className="flex-1 flex items-center justify-center gap-2 text-sm bg-amber-50 text-amber-700 py-2.5 rounded-xl hover:bg-amber-100"><Edit className="w-4 h-4" /> Edit</button><button onClick={()=>showDeletePopup(v.id, v.name)} className="flex-1 flex items-center justify-center gap-2 text-sm bg-red-50 text-red-500 py-2.5 rounded-xl hover:bg-red-100"><Trash2 className="w-4 h-4" /> Delete</button></div></div></div>))}
               </div>
             ):(
               <div className="space-y-3">
-                {paginatedVenues.map(v=>(<div key={v.id} className="bg-white rounded-2xl border p-5 flex items-center justify-between hover:shadow-md transition"><div className="flex items-center gap-4"><div className="w-16 h-16 rounded-xl bg-stone-100 overflow-hidden flex-shrink-0">{v.image?<img src={v.image} className="w-full h-full object-cover" />:<div className="w-full h-full flex items-center justify-center"><PartyPopper className="w-8 h-8 text-stone-300" /></div>}</div><div><h3 className="font-bold text-stone-800">{v.name} <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full capitalize ml-2">{v.venue_type}</span></h3><p className="text-stone-500 text-sm">{v.description||'No description'} • {v.capacity} guests</p></div></div><div className="flex items-center gap-6"><span className="font-bold text-stone-800">KES {parseFloat(v.price_per_day).toLocaleString()}<span className="text-stone-400 text-xs font-normal">/day</span></span><div className="flex gap-2"><button onClick={()=>openEdit(v)} className="px-4 py-2 text-sm bg-amber-50 text-amber-700 rounded-xl hover:bg-amber-100"><Edit className="w-4 h-4 inline mr-1" /> Edit</button><button onClick={()=>handleDelete(v.id)} className="px-4 py-2 text-sm bg-red-50 text-red-500 rounded-xl hover:bg-red-100"><Trash2 className="w-4 h-4 inline mr-1" /> Delete</button></div></div></div>))}
+                {paginatedVenues.map(v=>(<div key={v.id} className="bg-white rounded-2xl border p-5 flex items-center justify-between hover:shadow-md transition"><div className="flex items-center gap-4"><div className="w-16 h-16 rounded-xl bg-stone-100 overflow-hidden flex-shrink-0">{v.image?<img src={v.image} className="w-full h-full object-cover" />:<div className="w-full h-full flex items-center justify-center"><PartyPopper className="w-8 h-8 text-stone-300" /></div>}</div><div><h3 className="font-bold text-stone-800">{v.name} <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full capitalize ml-2">{v.venue_type}</span></h3><p className="text-stone-500 text-sm">{v.description||'No description'} • {v.capacity} guests</p></div></div><div className="flex items-center gap-6"><span className="font-bold text-stone-800">KES {parseFloat(v.price_per_day).toLocaleString()}<span className="text-stone-400 text-xs font-normal">/day</span></span><div className="flex gap-2"><button onClick={()=>openEdit(v)} className="px-4 py-2 text-sm bg-amber-50 text-amber-700 rounded-xl hover:bg-amber-100"><Edit className="w-4 h-4 inline mr-1" /> Edit</button><button onClick={()=>showDeletePopup(v.id, v.name)} className="px-4 py-2 text-sm bg-red-50 text-red-500 rounded-xl hover:bg-red-100"><Trash2 className="w-4 h-4 inline mr-1" /> Delete</button></div></div></div>))}
               </div>
             )}
             {totalPages>1&&(<div className="flex justify-center items-center gap-3 mt-10"><button onClick={()=>setPage(p=>Math.max(1,p-1))} disabled={page===1} className="px-4 py-2 bg-white border border-stone-200 rounded-xl text-sm hover:border-amber-400 disabled:opacity-40">← Prev</button>{Array.from({length:totalPages},(_,i)=>i+1).map(p=>(<button key={p} onClick={()=>setPage(p)} className={`w-9 h-9 rounded-xl text-sm font-medium transition ${page===p?'bg-amber-700 text-white':'bg-white border border-stone-200 text-stone-600 hover:border-amber-400'}`}>{p}</button>))}<button onClick={()=>setPage(p=>Math.min(totalPages,p+1))} disabled={page===totalPages} className="px-4 py-2 bg-white border border-stone-200 rounded-xl text-sm hover:border-amber-400 disabled:opacity-40">Next →</button></div>)}

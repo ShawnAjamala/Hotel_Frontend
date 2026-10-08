@@ -86,6 +86,10 @@ const GuestBookings = () => {
   const totalPages = Math.ceil(filteredBookings.length / perPage);
   const paginated = filteredBookings.slice((page - 1) * perPage, page * perPage);
 
+  useEffect(() => {
+    setPage(current => Math.min(current, Math.max(1, totalPages || 1)));
+  }, [totalPages]);
+
   const showPopup = (type, message, onConfirm) => setPopup({ show: true, type, message, onConfirm });
   const closePopup = () => setPopup({ show: false, type: '', message: '', onConfirm: null });
   const handleConfirm = () => { if (popup.onConfirm) popup.onConfirm(); closePopup(); };

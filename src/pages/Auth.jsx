@@ -125,8 +125,8 @@ const Auth = () => {
     <div className="min-h-screen bg-stone-50 flex flex-col">
       <Navbar />
 
-      <div className="flex-1 flex items-center justify-center px-4 py-8">
-        <div className="bg-white rounded-3xl shadow-xl border border-stone-100 overflow-hidden w-full max-w-sm">
+      <div className="flex-1 flex items-center justify-center px-3 sm:px-4 py-8">
+        <div className="bg-white rounded-3xl shadow-xl border border-stone-100 overflow-hidden w-full max-w-sm mx-auto">
           
           {/* Header */}
           <div className="bg-gradient-to-r from-amber-700 to-amber-600 px-6 py-5 text-center text-white">

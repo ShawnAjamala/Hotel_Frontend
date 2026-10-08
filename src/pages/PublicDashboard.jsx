@@ -38,19 +38,19 @@ const PublicDashboard = () => {
       <section className="relative bg-gradient-to-br from-stone-900 via-stone-800 to-amber-900 text-white min-h-[85vh] flex items-center">
         <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=1200')] bg-cover bg-center opacity-15" />
         <div className="absolute inset-0 bg-gradient-to-r from-stone-900/95 via-stone-900/80 to-transparent" />
-        <div className="relative max-w-7xl mx-auto px-8 py-20 w-full">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-8 py-16 sm:py-20 w-full">
           <div className="max-w-3xl">
             <div className="inline-flex items-center gap-2 bg-amber-500/20 backdrop-blur-sm border border-amber-400/30 px-5 py-2.5 rounded-full mb-8">
               <Sparkles className="w-4 h-4 text-amber-400" />
               <span className="text-amber-200 text-sm font-medium tracking-wider">Welcome to Grand Horizon</span>
             </div>
             
-            <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
+            <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold mb-6 leading-tight">
               {hotelData?.hotel || 'Grand Horizon Hotel'}
-              <span className="block text-amber-400 text-3xl md:text-4xl mt-2">Luxury Redefined</span>
+              <span className="block text-amber-400 text-2xl sm:text-3xl md:text-4xl mt-2">Luxury Redefined</span>
             </h1>
             
-            <p className="text-xl text-stone-300 mb-10 max-w-2xl leading-relaxed">
+            <p className="text-base sm:text-xl text-stone-300 mb-8 sm:mb-10 max-w-2xl leading-relaxed">
               {hotelData?.welcome || 'Experience world-class hospitality with stunning views, exquisite dining, and unforgettable moments.'}
             </p>
             
@@ -100,7 +100,7 @@ const PublicDashboard = () => {
       </section>
 
       {/* Features Section */}
-      <section className="max-w-7xl mx-auto -mt-12 px-8 relative z-10">
+      <section className="max-w-7xl mx-auto -mt-12 px-4 sm:px-8 relative z-10">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {[
             { 
@@ -140,8 +140,8 @@ const PublicDashboard = () => {
       </section>
 
       {/* Services Section */}
-      <section className="max-w-7xl mx-auto py-24 px-8">
-        <div className="text-center mb-16">
+      <section className="max-w-7xl mx-auto py-16 sm:py-24 px-4 sm:px-8">
+        <div className="text-center mb-12 sm:mb-16">
           <div className="inline-flex items-center gap-2 bg-amber-100 px-4 py-2 rounded-full mb-4">
             <Calendar className="w-4 h-4 text-amber-700" />
             <span className="text-sm font-medium text-amber-700">Our Services</span>
@@ -208,11 +208,11 @@ const PublicDashboard = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="relative bg-gradient-to-r from-amber-800 to-amber-700 py-20 px-8">
+      <section className="relative bg-gradient-to-r from-amber-800 to-amber-700 py-16 sm:py-20 px-4 sm:px-8">
         <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=1200')] bg-cover bg-center opacity-10" />
         <div className="relative max-w-4xl mx-auto text-center text-white">
-          <h2 className="text-4xl md:text-5xl font-bold mb-4">Ready to Experience Luxury?</h2>
-          <p className="text-amber-100/80 text-lg mb-8 max-w-2xl mx-auto">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4">Ready to Experience Luxury?</h2>
+          <p className="text-amber-100/80 text-base sm:text-lg mb-8 max-w-2xl mx-auto">
             Book your stay today and discover why Grand Horizon is the preferred choice for discerning travelers.
           </p>
           {isLoggedIn ? (

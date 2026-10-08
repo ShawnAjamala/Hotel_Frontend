@@ -60,6 +60,10 @@ const GuestVenues = () => {
   const totalPages = Math.ceil(filteredVenues.length / perPage);
   const paginated = filteredVenues.slice((page - 1) * perPage, page * perPage);
 
+  useEffect(() => {
+    setPage(current => Math.min(current, Math.max(1, totalPages || 1)));
+  }, [totalPages]);
+
   // Handle Book Now click - redirect to login if not logged in
   const handleBookNow = (venueId) => {
     if (!isLoggedIn) {

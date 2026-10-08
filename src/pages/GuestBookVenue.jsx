@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Users, CheckCircle, XCircle, PartyPopper, AlertTriangle } from 'lucide-react';
 import API from '../services/api';
@@ -7,6 +7,7 @@ import GuestNavbar from '../components/GuestNavbar';
 const GuestBookVenue = () => {
   const navigate = useNavigate();
   const { venueId } = useParams();
+  const pollRef = useRef(null);
   const [venue, setVenue] = useState(null);
   const [evType, setEvType] = useState('wedding');
   const [date, setDate] = useState('');
@@ -24,7 +25,8 @@ const GuestBookVenue = () => {
 
   const showPopup = useCallback((msg) => {
     setPopup({ show: true, message: msg });
-    setTimeout(() => setPopup({ show: false, message: '' }), 3000);
+    window.clearTimeout(showPopup.timeoutId);
+    showPopup.timeoutId = window.setTimeout(() => setPopup({ show: false, message: '' }), 3000);
   }, []);
 
   useEffect(() => {
@@ -38,7 +40,12 @@ const GuestBookVenue = () => {
         else navigate('/guest/events');
       })
       .catch(() => navigate('/guest/events'));
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+      if (pollRef.current) {
+        clearTimeout(pollRef.current);
+      }
+    };
   }, [venueId]);
 
   const base = venue ? parseFloat(venue.price_per_day) : 0;
@@ -93,7 +100,7 @@ const GuestBookVenue = () => {
   const poll = (cid) => {
     let attempts = 0;
     const check = async () => {
-      if (attempts++ >= 24) {
+      if (attempts++ >= 32) {
         setPayStatus(p => p?.status === 'pending' ? { ...p, status: 'timeout', message: 'Payment timed out. Please try again.' } : p);
         return;
       }
@@ -101,8 +108,10 @@ const GuestBookVenue = () => {
         const r = await API.get(`/mpesa/status/${cid}/`);
         if (r.data.status === 'Completed') { setPayStatus(p => ({ ...p, status: 'completed', receipt: r.data.mpesa_receipt })); return; }
         if (r.data.status === 'Failed' || r.data.status === 'Cancelled') { setPayStatus(p => ({ ...p, status: 'failed', message: r.data.result_desc || 'Payment failed.' })); return; }
-      } catch { /* keep polling */ }
-      setTimeout(check, 5000);
+      } catch {
+        // keep polling until a terminal response is received
+      }
+      pollRef.current = setTimeout(check, 2500);
     };
     check();
   };
@@ -183,10 +192,10 @@ const GuestBookVenue = () => {
                 <label className="block text-sm font-medium text-stone-700 mb-1.5">
                   <Users className="w-4 h-4 inline mr-1 text-amber-600" /> Number of Guests
                 </label>
-                <div className="flex items-center gap-3">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3">
                   <input type="number" value={guests} min={1} max={venue.capacity}
                     onChange={e => setGuests(Math.max(1, Math.min(venue.capacity, parseInt(e.target.value) || 1)))}
-                    className="w-28 px-4 py-3 border border-stone-200 rounded-xl outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-100 text-stone-800" />
+                    className="w-full sm:w-28 px-4 py-3 border border-stone-200 rounded-xl outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-100 text-stone-800" />
                   <span className="text-stone-400 text-sm">Max: {venue.capacity}</span>
                 </div>
               </div>

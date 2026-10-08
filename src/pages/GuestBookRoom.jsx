@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Users, CheckCircle, Clock, XCircle, AlertTriangle } from 'lucide-react';
 import API from '../services/api';
@@ -7,6 +7,7 @@ import GuestNavbar from '../components/GuestNavbar';
 const GuestBookRoom = () => {
   const navigate = useNavigate();
   const { roomId } = useParams();
+  const pollRef = useRef(null);
   const [room, setRoom] = useState(null);
   const [checkIn, setCheckIn] = useState('');
   const [checkOut, setCheckOut] = useState('');
@@ -23,7 +24,8 @@ const GuestBookRoom = () => {
 
   const showPopup = useCallback((msg) => {
     setPopup({ show: true, message: msg });
-    setTimeout(() => setPopup({ show: false, message: '' }), 3000);
+    window.clearTimeout(showPopup.timeoutId);
+    showPopup.timeoutId = window.setTimeout(() => setPopup({ show: false, message: '' }), 3000);
   }, []);
 
   useEffect(() => {
@@ -31,7 +33,12 @@ const GuestBookRoom = () => {
     API.get(`/rooms/${roomId}/`, { headers })
       .then(r => { if (m) setRoom(r.data); })
       .catch(() => navigate('/guest/rooms'));
-    return () => { m = false; };
+    return () => {
+      m = false;
+      if (pollRef.current) {
+        clearTimeout(pollRef.current);
+      }
+    };
   }, [roomId]);
 
   const nights = checkIn && checkOut
@@ -68,9 +75,9 @@ const GuestBookRoom = () => {
   };
 
   const poll = (cid) => {
-    let a = 0;
-    const ch = async () => {
-      if (a++ >= 24) {
+    let attempts = 0;
+    const check = async () => {
+      if (attempts++ >= 32) {
         setPayStatus(p => p?.status === 'pending' ? { ...p, status: 'timeout', message: 'Payment timed out.' } : p);
         return;
       }
@@ -84,10 +91,12 @@ const GuestBookRoom = () => {
           setPayStatus(p => ({ ...p, status: 'failed', message: r.data.result_desc || 'Payment failed.' }));
           return;
         }
-      } catch (e) {}
-      setTimeout(ch, 5000);
+      } catch (e) {
+        // keep polling until a terminal response is received
+      }
+      pollRef.current = setTimeout(check, 2500);
     };
-    ch();
+    check();
   };
 
   if (!room) return (
@@ -151,7 +160,7 @@ const GuestBookRoom = () => {
 
             <div className="space-y-5">
               {/* Dates Row */}
-              <div className="grid grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-stone-700 mb-2">
                     <Clock className="w-4 h-4 inline mr-1 text-amber-600" /> Check-in Date

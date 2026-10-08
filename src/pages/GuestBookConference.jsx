@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Users, CheckCircle, Clock, XCircle, Presentation, AlertTriangle } from 'lucide-react';
 import API from '../services/api';
@@ -7,6 +7,7 @@ import GuestNavbar from '../components/GuestNavbar';
 const GuestBookConference = () => {
   const navigate = useNavigate();
   const { roomId } = useParams();
+  const pollRef = useRef(null);
   const [room, setRoom] = useState(null);
   const [date, setDate] = useState('');
   const [st, setSt] = useState('');
@@ -25,7 +26,8 @@ const GuestBookConference = () => {
 
   const showPopup = useCallback((msg) => {
     setPopup({ show: true, message: msg });
-    setTimeout(() => setPopup({ show: false, message: '' }), 3000);
+    window.clearTimeout(showPopup.timeoutId);
+    showPopup.timeoutId = window.setTimeout(() => setPopup({ show: false, message: '' }), 3000);
   }, []);
 
   useEffect(() => {
@@ -39,7 +41,12 @@ const GuestBookConference = () => {
         else navigate('/guest/conference');
       })
       .catch(() => navigate('/guest/conference'));
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+      if (pollRef.current) {
+        clearTimeout(pollRef.current);
+      }
+    };
   }, [roomId]);
 
   // Compute duration & costs
@@ -93,7 +100,7 @@ const GuestBookConference = () => {
   const poll = (cid) => {
     let attempts = 0;
     const check = async () => {
-      if (attempts++ >= 24) {
+      if (attempts++ >= 32) {
         setPayStatus(p => p?.status === 'pending' ? { ...p, status: 'timeout', message: 'Payment timed out. Please try again.' } : p);
         return;
       }
@@ -107,8 +114,10 @@ const GuestBookConference = () => {
           setPayStatus(p => ({ ...p, status: 'failed', message: r.data.result_desc || 'Payment failed.' }));
           return;
         }
-      } catch { /* keep polling */ }
-      setTimeout(check, 5000);
+      } catch {
+        // keep polling until a terminal response is received
+      }
+      pollRef.current = setTimeout(check, 2500);
     };
     check();
   };
@@ -189,7 +198,7 @@ const GuestBookConference = () => {
               </div>
 
               {/* Start / End time — side by side, no overflow */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-stone-700 mb-1.5">Start Time</label>
                   <input

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Users, Clock, CheckCircle, XCircle, UtensilsCrossed, AlertTriangle } from 'lucide-react';
 import API from '../services/api';
@@ -7,6 +7,7 @@ import GuestNavbar from '../components/GuestNavbar';
 const GuestBookTable = () => {
   const navigate = useNavigate();
   const { tableId } = useParams();
+  const pollRef = useRef(null);
   const [table, setTable] = useState(null);
   const [date, setDate] = useState('');
   const [st, setSt] = useState('');
@@ -24,7 +25,8 @@ const GuestBookTable = () => {
 
   const showPopup = useCallback((msg) => {
     setPopup({ show: true, message: msg });
-    setTimeout(() => setPopup({ show: false, message: '' }), 3000);
+    window.clearTimeout(showPopup.timeoutId);
+    showPopup.timeoutId = window.setTimeout(() => setPopup({ show: false, message: '' }), 3000);
   }, []);
 
   useEffect(() => {
@@ -38,7 +40,12 @@ const GuestBookTable = () => {
         else navigate('/guest/restaurant');
       })
       .catch(() => navigate('/guest/restaurant'));
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+      if (pollRef.current) {
+        clearTimeout(pollRef.current);
+      }
+    };
   }, [tableId]);
 
   const total = table ? parseFloat(table.price_per_slot) : 0;
@@ -74,7 +81,7 @@ const GuestBookTable = () => {
   const poll = (cid) => {
     let attempts = 0;
     const check = async () => {
-      if (attempts++ >= 24) {
+      if (attempts++ >= 32) {
         setPayStatus(p => p?.status === 'pending' ? { ...p, status: 'timeout', message: 'Payment timed out. Please try again.' } : p);
         return;
       }
@@ -82,8 +89,10 @@ const GuestBookTable = () => {
         const r = await API.get(`/mpesa/status/${cid}/`);
         if (r.data.status === 'Completed') { setPayStatus(p => ({ ...p, status: 'completed', receipt: r.data.mpesa_receipt })); return; }
         if (r.data.status === 'Failed' || r.data.status === 'Cancelled') { setPayStatus(p => ({ ...p, status: 'failed', message: r.data.result_desc || 'Payment failed.' })); return; }
-      } catch { /* keep polling */ }
-      setTimeout(check, 5000);
+      } catch {
+        // keep polling until a terminal response is received
+      }
+      pollRef.current = setTimeout(check, 2500);
     };
     check();
   };
@@ -151,7 +160,7 @@ const GuestBookTable = () => {
                 <input type="date" value={date} min={today} onChange={e => setDate(e.target.value)}
                   className="w-full px-4 py-3 border border-stone-200 rounded-xl outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-100 text-stone-800" />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-stone-700 mb-1.5">Start Time</label>
                   <input type="time" value={st} onChange={e => setSt(e.target.value)}

@@ -56,6 +56,10 @@ const GuestTables = () => {
   const totalPages = Math.ceil(tables.length / perPage);
   const paginated = tables.slice((page-1)*perPage, page*perPage);
 
+  useEffect(() => {
+    setPage(current => Math.min(current, Math.max(1, totalPages || 1)));
+  }, [totalPages]);
+
   // Handle Reserve click - redirect to login if not logged in
   const handleReserve = (tableId) => {
     if (!isLoggedIn) {

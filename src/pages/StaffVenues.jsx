@@ -169,6 +169,10 @@ const StaffVenues = () => {
   const totalPages = Math.ceil(venues.length / perPage);
   const paginatedVenues = venues.slice((page - 1) * perPage, page * perPage);
 
+  useEffect(() => {
+    setPage(current => Math.min(current, Math.max(1, totalPages || 1)));
+  }, [totalPages]);
+
   return (
     <div className="min-h-screen bg-stone-50 font-sans">
       <StaffNavbar />
@@ -211,21 +215,21 @@ const StaffVenues = () => {
         </div>
       )}
 
-      <section className="bg-gradient-to-br from-amber-900 to-amber-800 text-white py-14 px-8">
+      <section className="bg-gradient-to-br from-amber-900 to-amber-800 text-white py-14 px-4 md:px-8">
         <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-between">
-            <div><div className="flex items-center gap-2 mb-2"><PartyPopper className="w-5 h-5 text-amber-300" /><span className="text-amber-200 text-sm uppercase">Staff Management</span></div><h1 className="text-4xl font-bold">Event Venues</h1><p className="text-amber-100/80 mt-2">{venues.length} venue{venues.length!==1?'s':''}</p></div>
-            <div className="flex items-center gap-3">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div><div className="flex items-center gap-2 mb-2"><PartyPopper className="w-5 h-5 text-amber-300" /><span className="text-amber-200 text-sm uppercase">Staff Management</span></div><h1 className="text-3xl font-bold sm:text-4xl">Event Venues</h1><p className="text-amber-100/80 mt-2">{venues.length} venue{venues.length!==1?'s':''}</p></div>
+            <div className="flex flex-wrap items-center gap-3">
               <div className="flex bg-white/10 rounded-lg p-1"><button onClick={()=>setViewMode('grid')} className={`p-2 rounded-md transition ${viewMode==='grid'?'bg-white text-amber-900':'text-white/70 hover:text-white'}`}><Grid3X3 className="w-5 h-5" /></button><button onClick={()=>setViewMode('list')} className={`p-2 rounded-md transition ${viewMode==='list'?'bg-white text-amber-900':'text-white/70 hover:text-white'}`}><List className="w-5 h-5" /></button></div>
               <button onClick={()=>{resetForm();setShowForm(!showForm)}} className="bg-white text-amber-900 px-6 py-3 rounded-xl font-semibold hover:bg-amber-50 flex items-center gap-2 shadow-lg"><Plus className="w-5 h-5" /> {showForm?'Close':'Add Venue'}</button>
             </div>
           </div>
         </div>
       </section>
-      <div className="max-w-7xl mx-auto px-8 -mt-6 z-10 pb-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-8 -mt-6 z-10 pb-16">
         {showForm && (
           <div className="bg-white rounded-2xl shadow-xl border overflow-hidden mb-10">
-            <div className="bg-stone-50 px-6 py-4 border-b flex justify-between">
+            <div className="bg-stone-50 px-4 sm:px-6 py-4 border-b flex justify-between">
               <div className="flex items-center gap-3">
                 <div className="bg-amber-100 w-9 h-9 rounded-xl flex items-center justify-center">
                   <PartyPopper className="w-4 h-4 text-amber-700" />
@@ -234,7 +238,7 @@ const StaffVenues = () => {
               </div>
               <button onClick={resetForm} className="text-stone-400 hover:text-red-500"><X className="w-5 h-5" /></button>
             </div>
-            <form onSubmit={editingVenue?handleUpdate:handleCreate} className="p-6">
+            <form onSubmit={editingVenue?handleUpdate:handleCreate} className="p-4 sm:p-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {/* Column 1 */}
                 <div className="space-y-3">
@@ -293,7 +297,7 @@ const StaffVenues = () => {
                   <span className="text-xs text-stone-400">(Guests can select these)</span>
                 </div>
                 
-                <div className="flex gap-2 mb-2">
+                <div className="flex flex-col sm:flex-row gap-2 mb-2">
                   <input
                     type="text"
                     value={packageName}
@@ -306,12 +310,12 @@ const StaffVenues = () => {
                     value={packagePrice}
                     onChange={(e) => setPackagePrice(e.target.value)}
                     placeholder="Price"
-                    className="w-24 px-3 py-1.5 border rounded-xl outline-none focus:ring-2 focus:ring-amber-500 text-sm"
+                    className="w-full sm:w-24 px-3 py-1.5 border rounded-xl outline-none focus:ring-2 focus:ring-amber-500 text-sm"
                   />
                   <button
                     type="button"
                     onClick={addPackage}
-                    className="px-3 py-1.5 bg-amber-700 text-white rounded-xl hover:bg-amber-800 transition flex items-center gap-1 text-xs"
+                    className="px-3 py-1.5 bg-amber-700 text-white rounded-xl hover:bg-amber-800 transition flex items-center justify-center gap-1 text-xs"
                   >
                     <PlusCircle className="w-3 h-3" /> Add
                   </button>

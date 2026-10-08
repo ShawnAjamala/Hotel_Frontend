@@ -37,6 +37,10 @@ const AdminUsers = () => {
   const totalPages = Math.ceil(filteredUsers.length / perPage);
   const paginated = filteredUsers.slice((page - 1) * perPage, page * perPage);
 
+  useEffect(() => {
+    setPage(current => Math.min(current, Math.max(1, totalPages || 1)));
+  }, [totalPages]);
+
   const roleBadge = (role) => {
     const config = { admin: 'bg-purple-100 text-purple-700', staff: 'bg-blue-100 text-blue-700', guest: 'bg-emerald-100 text-emerald-700' };
     return config[role] || 'bg-stone-100 text-stone-600';
@@ -76,7 +80,7 @@ const AdminUsers = () => {
             </div>
             <div className="relative ml-auto">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
-              <input type="text" value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} placeholder="Search users..." className="pl-10 pr-4 py-2 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-amber-500 w-56" />
+              <input type="text" value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} placeholder="Search users..." className="pl-10 pr-4 py-2 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-amber-500 w-full sm:w-56" />
             </div>
           </div>
         </div>

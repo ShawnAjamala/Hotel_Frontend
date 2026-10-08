@@ -352,7 +352,7 @@ const StaffCancellationRequests = () => {
 
             <div className="space-y-4 mb-6">
               <div className="bg-stone-50 rounded-xl p-4">
-                <div className="grid grid-cols-2 gap-3 text-sm">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                   <div>
                     <p className="text-stone-500">Guest</p>
                     <p className="font-medium text-stone-800">{selectedRequest.guest}</p>

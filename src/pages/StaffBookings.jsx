@@ -96,6 +96,10 @@ const StaffBookings = () => {
   const totalPages = Math.ceil(filteredBookings.length / perPage);
   const paginatedBookings = filteredBookings.slice((page - 1) * perPage, page * perPage);
 
+  useEffect(() => {
+    setPage(current => Math.min(current, Math.max(1, totalPages || 1)));
+  }, [totalPages]);
+
   return (
     <div className="min-h-screen bg-stone-50 font-sans">
       <StaffNavbar />
@@ -128,7 +132,7 @@ const StaffBookings = () => {
         </div>
       </section>
 
-      <div className="max-w-7xl mx-auto px-8 -mt-6 relative z-10 pb-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-8 -mt-6 relative z-10 pb-16">
         <div className="bg-white rounded-2xl shadow-sm border border-stone-200 p-5 mb-8">
           <div className="flex flex-wrap items-center gap-6">
             <div className="flex items-center gap-2">
@@ -167,7 +171,7 @@ const StaffBookings = () => {
                 return (
                   <div key={i} className="bg-white border border-stone-200 rounded-2xl p-5 hover:shadow-md transition">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                      <div className="flex items-center gap-4 min-w-[200px]">
+                      <div className="flex items-center gap-4 min-w-0 flex-1 sm:flex-none">
                         <div className="bg-amber-100 w-10 h-10 rounded-lg flex items-center justify-center"><Icon className="w-5 h-5 text-amber-700" /></div>
                         <div>
                           <p className="font-semibold text-stone-800 capitalize">{typeLabels[booking.type]}: {booking.room || booking.table || booking.venue || `#${booking.id}`}</p>

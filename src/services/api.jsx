@@ -19,22 +19,6 @@ API.interceptors.request.use(
   }
 );
 
-// Cache busting — add timestamp to every GET request
-API.interceptors.request.use(
-  (config) => {
-    if (config.method === 'get') {
-      config.params = {
-        ...config.params,
-        _t: Date.now(),
-      };
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
-
 // Response interceptor - handle errors
 API.interceptors.response.use(
   (response) => {
@@ -51,7 +35,7 @@ API.interceptors.response.use(
         window.location.href = '/login';
       }
     }
-    
+
     // Return the error so components can handle it
     return Promise.reject(error);
   }

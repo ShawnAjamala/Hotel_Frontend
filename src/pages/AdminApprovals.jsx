@@ -50,9 +50,9 @@ const AdminApprovals = () => {
         </div>
       </section>
 
-      <div className="max-w-5xl mx-auto px-8 -mt-8 relative z-10 pb-16">
+      <div className="max-w-5xl mx-auto px-4 sm:px-8 -mt-8 relative z-10 pb-16">
         {/* Stats Cards */}
-        <div className="grid grid-cols-2 gap-5 mb-10">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-10">
           <div className="bg-white rounded-2xl border border-amber-200 shadow-sm p-6 flex items-center gap-5">
             <div className="bg-amber-100 w-14 h-14 rounded-2xl flex items-center justify-center">
               <Clock className="w-7 h-7 text-amber-600" />
@@ -95,19 +95,19 @@ const AdminApprovals = () => {
             <div className="space-y-3">
               {pending.map(s => (
                 <div key={s.id} className="bg-white border border-amber-200 rounded-2xl p-5 hover:shadow-md transition-all duration-300 hover:border-amber-300">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex items-center gap-4 min-w-0">
                       <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
                         <span className="text-lg font-bold text-amber-700">{s.username.substring(0, 2).toUpperCase()}</span>
                       </div>
-                      <div>
-                        <h3 className="font-semibold text-stone-800 text-lg">{s.username}</h3>
-                        <p className="text-stone-500 text-sm">{s.email}</p>
+                      <div className="min-w-0">
+                        <h3 className="font-semibold text-stone-800 text-lg truncate">{s.username}</h3>
+                        <p className="text-stone-500 text-sm truncate">{s.email}</p>
                       </div>
                     </div>
                     <button
                       onClick={() => handleApprove(s.id)}
-                      className="bg-emerald-600 text-white px-6 py-2.5 rounded-xl font-medium hover:bg-emerald-700 transition flex items-center gap-2 shadow-lg shadow-emerald-200"
+                      className="bg-emerald-600 text-white px-6 py-2.5 rounded-xl font-medium hover:bg-emerald-700 transition flex items-center justify-center gap-2 shadow-lg shadow-emerald-200 w-full sm:w-auto"
                     >
                       <UserCheck className="w-4 h-4" /> Approve Staff
                     </button>
@@ -140,22 +140,22 @@ const AdminApprovals = () => {
             <div className="space-y-3">
               {approved.map(s => (
                 <div key={s.id} className="bg-white border border-stone-200 rounded-2xl p-5 hover:shadow-md transition-all duration-300">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex items-center gap-4 min-w-0">
                       <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
                         <span className="text-lg font-bold text-emerald-700">{s.username.substring(0, 2).toUpperCase()}</span>
                       </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h3 className="font-semibold text-stone-800 text-lg">{s.username}</h3>
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <h3 className="font-semibold text-stone-800 text-lg truncate">{s.username}</h3>
                           <span className="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full text-xs font-medium">Active</span>
                         </div>
-                        <p className="text-stone-500 text-sm">{s.email}</p>
+                        <p className="text-stone-500 text-sm truncate">{s.email}</p>
                       </div>
                     </div>
                     <button
                       onClick={() => handleUnapprove(s.id)}
-                      className="bg-amber-50 text-amber-700 px-5 py-2.5 rounded-xl font-medium hover:bg-amber-100 transition flex items-center gap-2 border border-amber-200"
+                      className="bg-amber-50 text-amber-700 px-5 py-2.5 rounded-xl font-medium hover:bg-amber-100 transition flex items-center justify-center gap-2 border border-amber-200 w-full sm:w-auto"
                     >
                       <UserX className="w-4 h-4" /> Revoke Access
                     </button>

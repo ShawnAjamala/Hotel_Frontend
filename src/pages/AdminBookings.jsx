@@ -54,6 +54,10 @@ const AdminBookings = () => {
   const totalPages = Math.ceil(filtered.length / perPage);
   const paginated = filtered.slice((page - 1) * perPage, page * perPage);
 
+  useEffect(() => {
+    setPage(current => Math.min(current, Math.max(1, totalPages || 1)));
+  }, [totalPages]);
+
   const getStatusColor = (status) => {
     switch (status) {
       case 'confirmed': case 'checked_in': return 'bg-emerald-100 text-emerald-700';
@@ -98,7 +102,7 @@ const AdminBookings = () => {
             </div>
             <div className="relative ml-auto">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
-              <input type="text" value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} placeholder="Search bookings..." className="pl-10 pr-4 py-2 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-amber-500 w-56" />
+              <input type="text" value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} placeholder="Search bookings..." className="pl-10 pr-4 py-2 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-amber-500 w-full sm:w-56" />
             </div>
           </div>
         </div>

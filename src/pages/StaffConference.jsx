@@ -167,6 +167,10 @@ const StaffConference = () => {
   const totalPages = Math.ceil(rooms.length / perPage);
   const paginatedRooms = rooms.slice((page - 1) * perPage, page * perPage);
 
+  useEffect(() => {
+    setPage(current => Math.min(current, Math.max(1, totalPages || 1)));
+  }, [totalPages]);
+
   return (
     <div className="min-h-screen bg-stone-50 font-sans">
       <StaffNavbar />
@@ -209,11 +213,11 @@ const StaffConference = () => {
         </div>
       )}
 
-      <section className="bg-gradient-to-br from-amber-900 to-amber-800 text-white py-14 px-8">
+      <section className="bg-gradient-to-br from-amber-900 to-amber-800 text-white py-14 px-4 md:px-8">
         <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-between">
-            <div><div className="flex items-center gap-2 mb-2"><Presentation className="w-5 h-5 text-amber-300" /><span className="text-amber-200 text-sm uppercase">Staff Management</span></div><h1 className="text-4xl font-bold">Conference Rooms</h1><p className="text-amber-100/80 mt-2">{rooms.length} room{rooms.length!==1?'s':''}</p></div>
-            <div className="flex items-center gap-3">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div><div className="flex items-center gap-2 mb-2"><Presentation className="w-5 h-5 text-amber-300" /><span className="text-amber-200 text-sm uppercase">Staff Management</span></div><h1 className="text-3xl font-bold sm:text-4xl">Conference Rooms</h1><p className="text-amber-100/80 mt-2">{rooms.length} room{rooms.length!==1?'s':''}</p></div>
+            <div className="flex flex-wrap items-center gap-3">
               <div className="flex bg-white/10 rounded-lg p-1"><button onClick={()=>setViewMode('grid')} className={`p-2 rounded-md transition ${viewMode==='grid'?'bg-white text-amber-900':'text-white/70 hover:text-white'}`}><Grid3X3 className="w-5 h-5" /></button><button onClick={()=>setViewMode('list')} className={`p-2 rounded-md transition ${viewMode==='list'?'bg-white text-amber-900':'text-white/70 hover:text-white'}`}><List className="w-5 h-5" /></button></div>
               <button onClick={()=>{resetForm();setShowForm(!showForm)}} className="bg-white text-amber-900 px-6 py-3 rounded-xl font-semibold hover:bg-amber-50 flex items-center gap-2 shadow-lg"><Plus className="w-5 h-5" /> {showForm?'Close':'Add Room'}</button>
             </div>

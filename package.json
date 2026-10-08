@@ -8,7 +8,7 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "postinstall": "chmod -R +x node_modules/.bin"
+    "postinstall": "node -e \"const fs=require('fs'); const path=require('path'); const dir=path.join('node_modules','.bin'); if (fs.existsSync(dir)) { for (const entry of fs.readdirSync(dir)) { const full = path.join(dir, entry); try { if (fs.statSync(full).isFile()) fs.chmodSync(full, 0o755); } catch {} } }\""
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.2",

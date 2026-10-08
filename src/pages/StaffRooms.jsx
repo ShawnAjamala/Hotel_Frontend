@@ -34,38 +34,42 @@ const StaffRooms = () => {
   const totalPages = Math.ceil(rooms.length / perPage);
   const paginatedRooms = rooms.slice((page - 1) * perPage, page * perPage);
 
+  useEffect(() => {
+    setPage(current => Math.min(current, Math.max(1, totalPages || 1)));
+  }, [totalPages]);
+
   return (
     <div className="min-h-screen bg-stone-50 font-sans">
       <StaffNavbar />
-      <section className="bg-gradient-to-br from-amber-900 to-amber-800 text-white py-14 px-8">
+      <section className="bg-gradient-to-br from-amber-900 to-amber-800 text-white py-14 px-4 md:px-8">
         <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-between">
-            <div><div className="flex items-center gap-2 mb-2"><Building className="w-5 h-5 text-amber-300" /><span className="text-amber-200 text-sm font-medium uppercase">Staff Management</span></div><h1 className="text-4xl font-bold">Room Management</h1><p className="text-amber-100/80 mt-2">{rooms.length} room{rooms.length!==1?'s':''}</p></div>
-            <div className="flex items-center gap-3">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div><div className="flex items-center gap-2 mb-2"><Building className="w-5 h-5 text-amber-300" /><span className="text-amber-200 text-sm font-medium uppercase">Staff Management</span></div><h1 className="text-3xl font-bold sm:text-4xl">Room Management</h1><p className="text-amber-100/80 mt-2">{rooms.length} room{rooms.length!==1?'s':''}</p></div>
+            <div className="flex flex-wrap items-center gap-3">
               <div className="flex bg-white/10 rounded-lg p-1"><button onClick={()=>setViewMode('grid')} className={`p-2 rounded-md transition ${viewMode==='grid'?'bg-white text-amber-900':'text-white/70 hover:text-white'}`}><Grid3X3 className="w-5 h-5" /></button><button onClick={()=>setViewMode('list')} className={`p-2 rounded-md transition ${viewMode==='list'?'bg-white text-amber-900':'text-white/70 hover:text-white'}`}><List className="w-5 h-5" /></button></div>
               <button onClick={()=>{resetForm();setShowForm(!showForm)}} className="bg-white text-amber-900 px-6 py-3 rounded-xl font-semibold hover:bg-amber-50 transition flex items-center gap-2 shadow-lg"><Plus className="w-5 h-5" /> {showForm?'Close':'Add Room'}</button>
             </div>
           </div>
         </div>
       </section>
-      <div className="max-w-7xl mx-auto px-8 -mt-6 relative z-10 pb-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-8 -mt-6 relative z-10 pb-16">
         {showForm && (
           <div className="bg-white rounded-2xl shadow-xl border border-stone-100 overflow-hidden mb-10">
-            <div className="bg-stone-50 px-8 py-5 border-b border-stone-100 flex items-center justify-between"><div className="flex items-center gap-3"><div className="bg-amber-100 w-10 h-10 rounded-xl flex items-center justify-center"><BedDouble className="w-5 h-5 text-amber-700" /></div><h2 className="text-lg font-bold text-stone-800">{editingRoom?'Edit Room':'Create Room'}</h2></div><button onClick={resetForm} className="text-stone-400 hover:text-red-500"><X className="w-5 h-5" /></button></div>
-            <form onSubmit={editingRoom?handleUpdate:handleCreate} className="p-8">
+            <div className="bg-stone-50 px-4 sm:px-8 py-5 border-b border-stone-100 flex items-center justify-between"><div className="flex items-center gap-3"><div className="bg-amber-100 w-10 h-10 rounded-xl flex items-center justify-center"><BedDouble className="w-5 h-5 text-amber-700" /></div><h2 className="text-lg font-bold text-stone-800">{editingRoom?'Edit Room':'Create Room'}</h2></div><button onClick={resetForm} className="text-stone-400 hover:text-red-500"><X className="w-5 h-5" /></button></div>
+            <form onSubmit={editingRoom?handleUpdate:handleCreate} className="p-4 sm:p-8">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <div className="md:col-span-2 space-y-5">
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div><label className="block text-sm font-medium text-stone-700 mb-2">Room Number *</label><input type="text" value={form.room_number} onChange={e=>setForm({...form,room_number:e.target.value})} className="w-full px-4 py-3 border border-stone-200 rounded-xl outline-none" placeholder="101" required /></div>
                     <div><label className="block text-sm font-medium text-stone-700 mb-2">Type *</label><select value={form.room_type} onChange={e=>setForm({...form,room_type:e.target.value})} className="w-full px-4 py-3 border border-stone-200 rounded-xl outline-none bg-white"><option value="single">Single</option><option value="double">Double</option><option value="suite">Suite</option><option value="family">Family</option></select></div>
                     <div><label className="block text-sm font-medium text-stone-700 mb-2">Price/Night *</label><input type="number" value={form.price_per_night} onChange={e=>setForm({...form,price_per_night:e.target.value})} className="w-full px-4 py-3 border border-stone-200 rounded-xl outline-none" placeholder="5000" required /></div>
                   </div>
-                  <div className="grid grid-cols-2 gap-4"><div><label className="block text-sm font-medium text-stone-700 mb-2">Max Guests *</label><input type="number" value={form.max_guests} onChange={e=>setForm({...form,max_guests:e.target.value})} className="w-full px-4 py-3 border border-stone-200 rounded-xl outline-none" placeholder="2" required /></div><div><label className="block text-sm font-medium text-stone-700 mb-2">Amenities</label><input type="text" value={form.amenities} onChange={e=>setForm({...form,amenities:e.target.value})} className="w-full px-4 py-3 border border-stone-200 rounded-xl outline-none" placeholder="WiFi, TV, AC" /></div></div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4"><div><label className="block text-sm font-medium text-stone-700 mb-2">Max Guests *</label><input type="number" value={form.max_guests} onChange={e=>setForm({...form,max_guests:e.target.value})} className="w-full px-4 py-3 border border-stone-200 rounded-xl outline-none" placeholder="2" required /></div><div><label className="block text-sm font-medium text-stone-700 mb-2">Amenities</label><input type="text" value={form.amenities} onChange={e=>setForm({...form,amenities:e.target.value})} className="w-full px-4 py-3 border border-stone-200 rounded-xl outline-none" placeholder="WiFi, TV, AC" /></div></div>
                   <div><label className="block text-sm font-medium text-stone-700 mb-2">Description</label><input type="text" value={form.description} onChange={e=>setForm({...form,description:e.target.value})} className="w-full px-4 py-3 border border-stone-200 rounded-xl outline-none" placeholder="Cozy room" /></div>
                 </div>
                 <div><label className="block text-sm font-medium text-stone-700 mb-2">Room Image</label><div className="border-2 border-dashed border-stone-300 rounded-2xl p-6 text-center hover:border-amber-400 cursor-pointer h-[220px] flex flex-col items-center justify-center bg-stone-50" onClick={()=>document.getElementById('rimg').click()}>{imagePreview?<img src={imagePreview} className="h-full object-cover rounded-xl" />:<><ImagePlus className="w-10 h-10 text-stone-300 mb-3" /><p className="text-stone-500 text-sm">Upload Image</p></>}<input id="rimg" type="file" accept="image/*" onChange={handleImageChange} className="hidden" /></div></div>
               </div>
-              <div className="mt-8 pt-6 border-t flex items-center gap-4"><button type="submit" className="bg-amber-700 text-white px-8 py-3 rounded-xl font-medium hover:bg-amber-600 shadow-lg shadow-amber-200">{editingRoom?'Update':'Create'}</button><button type="button" onClick={resetForm} className="text-stone-500 hover:text-stone-700 text-sm">Cancel</button></div>
+              <div className="mt-8 pt-6 border-t flex flex-col sm:flex-row items-center gap-4"><button type="submit" className="bg-amber-700 text-white px-8 py-3 rounded-xl font-medium hover:bg-amber-600 shadow-lg shadow-amber-200 w-full sm:w-auto">{editingRoom?'Update':'Create'}</button><button type="button" onClick={resetForm} className="text-stone-500 hover:text-stone-700 text-sm">Cancel</button></div>
             </form>
           </div>
         )}

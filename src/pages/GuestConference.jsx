@@ -53,6 +53,10 @@ const GuestConference = () => {
   const totalPages = Math.ceil(rooms.length / perPage);
   const paginated = rooms.slice((page-1)*perPage, page*perPage);
 
+  useEffect(() => {
+    setPage(current => Math.min(current, Math.max(1, totalPages || 1)));
+  }, [totalPages]);
+
   // Handle Book Now click - redirect to login if not logged in
   const handleBookNow = (roomId) => {
     if (!isLoggedIn) {

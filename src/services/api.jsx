@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const API = axios.create({
-  baseURL: 'https://final-capstone-2puq.onrender.com/api',
+  baseURL: 'https://final-capstone-lt3j.onrender.com/api',
   timeout: 30000,
 });
 

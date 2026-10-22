@@ -11,7 +11,7 @@ const PublicDashboard = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
-    axios.get('https://final-capstone-2puq.onrender.com/')
+    axios.get('https://final-capstone-lt3j.onrender.com/')
       .then(res => setHotelData(res.data))
       .catch(() => {});
   }, []);

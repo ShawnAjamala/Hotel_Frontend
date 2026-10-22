@@ -224,10 +224,10 @@ const StaffConference = () => {
           </div>
         </div>
       </section>
-      <div className="max-w-7xl mx-auto px-8 -mt-6 z-10 pb-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-8 -mt-6 z-10 pb-16">
         {showForm && (
           <div className="bg-white rounded-2xl shadow-xl border overflow-hidden mb-10">
-            <div className="bg-stone-50 px-6 py-4 border-b flex justify-between">
+            <div className="bg-stone-50 px-4 sm:px-6 py-4 border-b flex justify-between">
               <div className="flex items-center gap-3">
                 <div className="bg-amber-100 w-9 h-9 rounded-xl flex items-center justify-center">
                   <Presentation className="w-4 h-4 text-amber-700" />
@@ -236,7 +236,7 @@ const StaffConference = () => {
               </div>
               <button onClick={resetForm} className="text-stone-400 hover:text-red-500"><X className="w-5 h-5" /></button>
             </div>
-            <form onSubmit={editingRoom?handleUpdate:handleCreate} className="p-6">
+            <form onSubmit={editingRoom?handleUpdate:handleCreate} className="p-4 sm:p-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {/* Column 1 */}
                 <div className="space-y-3">
@@ -285,7 +285,7 @@ const StaffConference = () => {
                   <span className="text-xs text-stone-400">(Guests can select these)</span>
                 </div>
                 
-                <div className="flex gap-2 mb-2">
+                <div className="flex flex-col sm:flex-row gap-2 mb-2">
                   <input
                     type="text"
                     value={packageName}
@@ -298,7 +298,7 @@ const StaffConference = () => {
                     value={packagePrice}
                     onChange={(e) => setPackagePrice(e.target.value)}
                     placeholder="Price"
-                    className="w-24 px-3 py-1.5 border rounded-xl outline-none focus:ring-2 focus:ring-amber-500 text-sm"
+                    className="w-full sm:w-24 px-3 py-1.5 border rounded-xl outline-none focus:ring-2 focus:ring-amber-500 text-sm"
                   />
                   <button
                     type="button"
